@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbreak - Admin Control Center</title>
+    <link rel="shortcut icon" href="#">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- HEADER ADMIN -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-400">Heartbreak Admin Panel</h1>
+                <p class="text-xs text-slate-400 mt-1">Kontrol Token Ujian Terpusat & Monitoring Presensi Real-Time</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span id="adminStatus" class="px-3 py-1 bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-semibold rounded-full flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Firebase Connected
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- PANEL KONTROL TOKEN UJIAN -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-5 h-fit">
+                <h2 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">Kelola Token Ujian</h2>
+                
+                <div id="adminAlert" class="hidden p-3 text-xs rounded-xl transition-all"></div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Token Ujian</label>
+                        <input type="text" id="admToken" placeholder="Contoh: MTK01" 
+                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono tracking-wider uppercase">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nama Ujian / Mapel</label>
+                        <input type="text" id="admMapel" placeholder="Contoh: Matematika X TEI" 
+                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">URL Google Form Ujian</label>
+                        <input type="url" id="admUrl" placeholder="https://docs.google.com/forms/..." 
+                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Status Token Baru</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="admIsActive" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+
+                    <button id="btnSaveExam" type="button" 
+                            class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
+                        Simpan / Update Token
+                    </button>
+                </div>
+
+                <!-- DAFTAR TOKEN AKTIF -->
+                <div class="pt-4 border-t border-slate-800">
+                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-3">Daftar Token Tersimpan</h3>
+                    <div id="tokenList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Token items load here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONITORING PRESENSI REAL-TIME -->
+            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-200">Log Presensi Real-Time</h2>
+                        <p class="text-xs text-slate-400">Data siswa yang berhasil masuk ke ujian akan muncul otomatis di sini</p>
+                    </div>
+                    <span id="attendanceCount" class="px-3 py-1 bg-slate-800 border border-slate-700 text-indigo-400 font-mono text-xs font-bold rounded-lg">
+                        0 Siswa
+                    </span>
+                </div>
+
+                <!-- TABEL PRESENSI -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 uppercase font-semibold">
+                                <th class="py-3 px-2">Waktu</th>
+                                <th class="py-3 px-2">NIS</th>
+                                <th class="py-3 px-2">Nama</th>
+                                <th class="py-3 px-2">Ruang</th>
+                                <th class="py-3 px-2">Token</th>
+                                <th class="py-3 px-2 text-right">Jarak GPS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody" class="divide-y divide-slate-800 text-slate-300">
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-slate-500 italic">Belum ada data presensi yang masuk...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        console.log("--> Script Admin Dimuat Browser...");
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
+            authDomain: "heartbreaker-6d3ff.firebaseapp.com",
+            projectId: "heartbreaker-6d3ff",
+            storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
+            messagingSenderId: "982228317876",
+            appId: "1:982228317876:web:490a67baf6e148968009e1"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        function showAdminAlert(msg, isError) {
+            const el = document.getElementById('adminAlert');
+            if (!el) return;
+            el.innerText = msg;
+            el.className = isError 
+                ? "p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-xl mb-3"
+                : "p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-200 text-xs rounded-xl mb-3";
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 4000);
+        }
+
+        async function handleSaveToken() {
+            console.log("--> Tombol Simpan Diklik!");
+            const tokenInput = document.getElementById('admToken');
+            const mapelInput = document.getElementById('admMapel');
+            const urlInput = document.getElementById('admUrl');
+            const activeInput = document.getElementById('admIsActive');
+
+            const token = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
+            const mapel = mapelInput ? mapelInput.value.trim() : '';
+            const url = urlInput ? urlInput.value.trim() : '';
+            const isActive = activeInput ? activeInput.checked : true;
+
+            if (!token || !url) {
+                showAdminAlert("Token Ujian dan Link Form Wajib Diisi!", true);
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveExam');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Menyimpan...";
+            }
+
+            try {
+                await db.collection('exams').doc(token).set({
+                    token: token,
+                    nama_ujian: mapel || "Ujian",
+                    form_url: url,
+                    is_active: isActive,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                console.log("--> Berhasil menyimpan token:", token);
+                showAdminAlert("Token " + token + " berhasil disimpan!", false);
+                if (tokenInput) tokenInput.value = '';
+                if (mapelInput) mapelInput.value = '';
+                if (urlInput) urlInput.value = '';
+            } catch (err) {
+                console.error("Firebase Error:", err);
+                showAdminAlert("Gagal menyimpan: " + err.message, true);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Simpan / Update Token";
+                }
+            }
+        }
+
+        async function handleToggleToken(token, newStatus) {
+            try {
+                await db.collection('exams').doc(token).update({ is_active: newStatus });
+                showAdminAlert("Token " + token + " diubah menjadi " + (newStatus ? 'AKTIF' : 'MATI'), false);
+            } catch (err) {
+                console.error("Firebase Error:", err);
+                showAdminAlert("Gagal mengubah status: " + err.message, true);
+            }
+        }
+
+        function listenExams() {
+            db.collection('exams').onSnapshot(snapshot => {
+                const list = document.getElementById('tokenList');
+                if (!list) return;
+                list.innerHTML = '';
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada token.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs";
+                    
+                    item.innerHTML = `
+                        <div class="truncate mr-2">
+                            <span class="font-mono font-bold text-indigo-400">${data.token}</span>
+                            <span class="text-slate-400 ml-1">(${data.nama_ujian || 'Ujian'})</span>
+                        </div>
+                        <button type="button" 
+                                data-token="${data.token}" 
+                                data-status="${!data.is_active}"
+                                class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-colors ${data.is_active ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
+                            ${data.is_active ? 'AKTIF' : 'MATI'}
+                        </button>
+                    `;
+                    list.appendChild(item);
+                });
+            }, err => console.error("Error listening exams:", err));
+        }
+
+        function listenAttendances() {
+            db.collection('attendances').orderBy('checkin_time', 'desc').onSnapshot(snapshot => {
+                const tbody = document.getElementById('attendanceTableBody');
+                const countEl = document.getElementById('attendanceCount');
+                
+                if (countEl) countEl.innerText = snapshot.size + " Siswa";
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500 italic">Belum ada data presensi yang masuk...</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const time = data.checkin_time ? new Date(data.checkin_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3 px-2 font-mono text-slate-400">${time}</td>
+                        <td class="py-3 px-2 font-mono text-indigo-400 font-bold">${data.nis}</td>
+                        <td class="py-3 px-2 font-semibold text-slate-200">${data.nama}</td>
+                        <td class="py-3 px-2 text-slate-400">${data.ruang || '-'}</td>
+                        <td class="py-3 px-2 font-mono font-bold text-emerald-400">${data.exam_token}</td>
+                        <td class="py-3 px-2 text-right font-mono ${(data.distance_meters || 0) <= 180 ? 'text-emerald-400' : 'text-red-400'}">${data.distance_meters || 0}m</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }, err => console.error("Error listening attendances:", err));
+        }
+
+        // FUNGSI INISIALISASI UTAMA
+        function initAdmin() {
+            console.log("--> Inisialisasi Admin Berjalan...");
+            const btnSave = document.getElementById('btnSaveExam');
+            if (btnSave) {
+                btnSave.addEventListener('click', handleSaveToken);
+            }
+
+            const tokenListContainer = document.getElementById('tokenList');
+            if (tokenListContainer) {
+                tokenListContainer.addEventListener('click', function(e) {
+                    const targetBtn = e.target.closest('.btn-toggle-status');
+                    if (targetBtn) {
+                        const token = targetBtn.getAttribute('data-token');
+                        const newStatus = targetBtn.getAttribute('data-status') === 'true';
+                        handleToggleToken(token, newStatus);
+                    }
+                });
+            }
+
+            listenExams();
+            listenAttendances();
+        }
+
+        // PENGECEKAN SAFE READY STATE (Mencegah domcontentloaded kelewat)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAdmin);
+        } else {
+            initAdmin();
+        }
+    </script>
+</body>
+</html>

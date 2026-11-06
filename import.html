@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbreak - Import Data Siswa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+        <div>
+            <h1 class="text-xl font-bold text-indigo-400">Import Massal Data Siswa</h1>
+            <p class="text-xs text-slate-400 mt-1">Upload file CSV untuk memasukkan data siswa ke Firestore</p>
+        </div>
+
+        <div id="importAlert" class="hidden p-3 text-xs rounded-xl"></div>
+
+        <div class="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center bg-slate-950/50 space-y-4">
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="hidden">
+            <label for="excelFile" class="cursor-pointer inline-block px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all">
+                Pilih File Excel / CSV
+            </label>
+            <p id="fileName" class="text-xs text-slate-400">Belum ada file dipilih</p>
+        </div>
+
+        <button id="btnUpload" disabled
+                class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 font-semibold rounded-xl text-sm transition-all shadow-lg active:scale-95">
+            Mulai Import ke Database
+        </button>
+
+        <div id="progressBox" class="hidden space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+                <span>Proses Upload...</span>
+                <span id="progressText" class="font-mono text-indigo-400">0 / 0</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                <div id="progressBar" class="bg-indigo-500 h-2 w-0 transition-all duration-200"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
+            authDomain: "heartbreaker-6d3ff.firebaseapp.com",
+            projectId: "heartbreaker-6d3ff",
+            storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
+            messagingSenderId: "982228317876",
+            appId: "1:982228317876:web:490a67baf6e148968009e1"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        let parsedData = [];
+
+        function showAlert(msg, isError = false) {
+            const el = document.getElementById('importAlert');
+            el.innerText = msg;
+            el.className = isError 
+                ? "p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-xl"
+                : "p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-200 text-xs rounded-xl";
+            el.classList.remove('hidden');
+        }
+
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').innerText = file.name;
+            const reader = new FileReader();
+
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                parsedData = XLSX.utils.sheet_to_json(worksheet);
+
+                if (parsedData.length > 0) {
+                    showAlert(`File dibaca! Ditemukan ${parsedData.length} data siswa siap di-import.`, false);
+                    document.getElementById('btnUpload').disabled = false;
+                } else {
+                    showAlert("File kosong atau format header tidak sesuai!", true);
+                    document.getElementById('btnUpload').disabled = true;
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById('btnUpload').addEventListener('click', async function() {
+            if (parsedData.length === 0) return;
+
+            const btn = document.getElementById('btnUpload');
+            btn.disabled = true;
+            btn.innerText = "Mengunggah Data...";
+
+            document.getElementById('progressBox').classList.remove('hidden');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            const total = parsedData.length;
+            let successCount = 0;
+
+            const chunkSize = 400;
+            for (let i = 0; i < total; i += chunkSize) {
+                const chunk = parsedData.slice(i, i + chunkSize);
+                const batch = db.batch();
+
+                chunk.forEach(row => {
+                    const nisStr = String(row.nis || '').trim();
+                    if (nisStr) {
+                        const ref = db.collection('students').doc(nisStr);
+                        batch.set(ref, {
+                            nis: nisStr,
+                            nama: String(row.nama || '').trim(),
+                            kelas: String(row.kelas || '-').trim(),
+                            ruang: String(row.ruang || '-').trim(),
+                            nomor_peserta: String(row.nomor_peserta || '-').trim()
+                        }, { merge: true });
+                        successCount++;
+                    }
+                });
+
+                await batch.commit();
+                const percent = Math.round((successCount / total) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressText.innerText = `${successCount} / ${total}`;
+            }
+
+            showAlert(`Berhasil meng-import ${successCount} siswa ke database Firestore!`, false);
+            btn.innerText = "Selesai!";
+        });
+    </script>
+</body>
+</html>

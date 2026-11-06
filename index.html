@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbreak - Portal Ujian Siswa</title>
+    <!-- FAVICON LOGO SEKOLAH -->
+    <link rel="shortcut icon" href="logo-sekolah.png" type="image/png">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- PORTAL LOGIN FORM (2-STEP WIZARD) -->
+    <div id="loginCard" class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+        
+        <!-- HEADER PORTAL + LOGO SEKOLAH -->
+        <div class="text-center space-y-2">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-950/60 border border-slate-800 p-2.5 mb-1 shadow-inner">
+                <img src="logo-sekolah.png" alt="Logo Sekolah" class="w-full h-full object-contain">
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">A2S SMKN 1 Muntok</h1>
+            <p class="text-xs text-slate-400">Portal Ujian Terlokasi & Terverifikasi</p>
+        </div>
+
+        <!-- ALERT PEMBERITAHUAN -->
+        <div id="studentAlert" class="hidden p-3.5 text-xs rounded-xl transition-all border"></div>
+
+        <!-- TAHAP 1: INPUT NIS SISWA -->
+        <div id="step1Container" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nomor Induk Siswa (NIS)</label>
+                <input type="number" id="inputNis" placeholder="Masukkan NIS Anda" 
+                       class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono transition-all"
+                       autocomplete="off">
+            </div>
+
+            <button id="btnCheckNis" type="button" 
+                    class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
+                Cek Data Siswa
+            </button>
+        </div>
+
+        <!-- TAHAP 2: KARTU PROFIL SISWA & TOKEN UJIAN -->
+        <div id="step2Container" class="hidden space-y-5">
+            
+            <!-- KARTU IDENTITAS SISWA -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Identitas Siswa Terverifikasi</span>
+                    <button id="btnResetNis" type="button" class="text-[10px] text-slate-400 hover:text-red-400 underline">Bukan Saya?</button>
+                </div>
+                <div>
+                    <h3 id="displayNama" class="text-base font-bold text-white">Nama Siswa</h3>
+                    <div class="flex items-center space-x-3 text-xs text-slate-400 mt-1">
+                        <span>NIS: <strong id="displayNis" class="text-slate-200 font-mono">-</strong></span>
+                        <span>•</span>
+                        <span>Kelas: <strong id="displayKelas" class="text-slate-200">-</strong></span>
+                        <span>•</span>
+                        <span>Ruang: <strong id="displayRuang" class="text-slate-200">-</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT TOKEN UJIAN -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Token Ujian Sesi</label>
+                    <input type="text" id="inputToken" placeholder="Masukkan Token Ujian" 
+                           class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono uppercase tracking-wider transition-all"
+                           autocomplete="off" spellcheck="false">
+                </div>
+
+                <button id="btnSubmitLogin" type="button" 
+                        class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/30 active:scale-95">
+                    Verifikasi Presensi & Masuk Ujian
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center border-t border-slate-800/80 pt-4">
+            <p class="text-[11px] text-slate-500">Pastikan GPS / Lokasi perangkat aktif sebelum menekan tombol masuk.</p>
+        </div>
+    </div>
+
+    <script>
+        // ========================================================
+        // KOORDINAT SEKOLAH & MAX RADIUS (MASUKKAN KOORDINAT ASLI)
+        // ========================================================
+        const SCHOOL_LAT = -2.064512;  // Latitude Sekolah
+        const SCHOOL_LNG = 105.161234; // Longitude Sekolah
+        const MAX_RADIUS_METERS = 180; // Toleransi Jarak Maximum (180 Meter)
+
+        // CONFIGURASI FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
+            authDomain: "heartbreaker-6d3ff.firebaseapp.com",
+            projectId: "heartbreaker-6d3ff",
+            storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
+            messagingSenderId: "982228317876",
+            appId: "1:982228317876:web:490a67baf6e148968009e1"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        let activeStudent = null;
+
+        function showAlert(msg, isError = true) {
+            const el = document.getElementById('studentAlert');
+            if (!el) return;
+            el.innerText = msg;
+            el.className = isError 
+                ? "p-3.5 bg-red-950/90 border border-red-800 text-red-200 text-xs rounded-xl"
+                : "p-3.5 bg-emerald-950/90 border border-emerald-800 text-emerald-200 text-xs rounded-xl";
+            el.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            const el = document.getElementById('studentAlert');
+            if (el) el.classList.add('hidden');
+        }
+
+        // RUMUS HAVERSINE HITUNG JARAK GPS
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return Math.round(R * c);
+        }
+
+        // TAHAP 1: VERIFIKASI NIS SISWA
+        async function handleCheckNis() {
+            hideAlert();
+            const nisInput = document.getElementById('inputNis');
+            const btn = document.getElementById('btnCheckNis');
+            const nis = nisInput ? nisInput.value.trim() : '';
+
+            if (!nis) {
+                showAlert("Silakan masukkan Nomor Induk Siswa (NIS) Anda!", true);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Mencari Data...";
+
+            try {
+                const doc = await db.collection('students').doc(nis).get();
+                if (!doc.exists) {
+                    showAlert(`NIS ${nis} tidak ditemukan di database!`, true);
+                    btn.disabled = false;
+                    btn.innerText = "Cek Data Siswa";
+                    return;
+                }
+
+                activeStudent = doc.data();
+
+                // Isi data ke Kartu Identitas
+                document.getElementById('displayNama').innerText = activeStudent.nama || '-';
+                document.getElementById('displayNis').innerText = activeStudent.nis || '-';
+                document.getElementById('displayKelas').innerText = activeStudent.kelas || '-';
+                document.getElementById('displayRuang').innerText = activeStudent.ruang || '-';
+
+                // Pindah ke Tahap 2
+                document.getElementById('step1Container').classList.add('hidden');
+                document.getElementById('step2Container').classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Error check NIS:", err);
+                showAlert("Gagal mengambil data: " + err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Cek Data Siswa";
+            }
+        }
+
+        // RESET PROFIL SISWA (KEMBALI KE TAHAP 1)
+        function handleResetNis() {
+            activeStudent = null;
+            document.getElementById('inputToken').value = '';
+            document.getElementById('step2Container').classList.add('hidden');
+            document.getElementById('step1Container').classList.remove('hidden');
+            hideAlert();
+        }
+
+        // TAHAP 2: PROSES LOGIN, CHECK GPS & REDIRECT GFORM
+        async function handleSubmitLogin() {
+            hideAlert();
+            if (!activeStudent) {
+                handleResetNis();
+                return;
+            }
+
+            const tokenInput = document.getElementById('inputToken');
+            const btn = document.getElementById('btnSubmitLogin');
+            const token = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
+
+            if (!token) {
+                showAlert("Silakan masukkan Token Ujian Sesi!", true);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Memverifikasi Token...";
+
+            try {
+                // 1. Cek Validitas & Status Token Ujian
+                const examDoc = await db.collection('exams').doc(token).get();
+                if (!examDoc.exists) {
+                    showAlert(`Token "${token}" tidak ditemukan / salah!`, true);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    tokenInput.value = '';
+                    return;
+                }
+
+                const examData = examDoc.data();
+                if (!examData.is_active) {
+                    showAlert(`Token "${token}" saat ini sedang TIDAK AKTIF!`, true);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    tokenInput.value = '';
+                    return;
+                }
+
+                // 2. Proteksi Single Session (Mencegah Login Berulang untuk Sesi Sama)
+                const existingLog = await db.collection('attendances')
+                    .where('nis', '==', activeStudent.nis)
+                    .where('exam_token', '==', token)
+                    .get();
+
+                if (!existingLog.empty) {
+                    showAlert(`Anda sudah terdaftar presensi untuk token ${token}! Login dibatasi 1 kali per sesi.`, true);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    tokenInput.value = '';
+                    return;
+                }
+
+                // 3. Verifikasi Lokasi GPS
+                if (!navigator.geolocation) {
+                    showAlert("Browser Anda tidak mendukung lokasi GPS!", true);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    return;
+                }
+
+                btn.innerText = "Mengecek Lokasi GPS...";
+
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        const distance = calculateDistance(userLat, userLng, SCHOOL_LAT, SCHOOL_LNG);
+
+                        if (distance > MAX_RADIUS_METERS) {
+                            showAlert(`Lokasi di luar area ujian! (Jarak: ${distance}m, Maksimal: ${MAX_RADIUS_METERS}m)`, true);
+                            btn.disabled = false;
+                            btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                            return;
+                        }
+
+                        // 4. Catat Log Presensi ke Firestore
+                        btn.innerText = "Mencatat Presensi...";
+                        await db.collection('attendances').add({
+                            nis: activeStudent.nis,
+                            nama: activeStudent.nama,
+                            kelas: activeStudent.kelas,
+                            ruang: activeStudent.ruang,
+                            exam_token: token,
+                            distance_meters: distance,
+                            checkin_time: new Date().toISOString()
+                        });
+
+                        showAlert("Presensi Berhasil! Mengarahkan ke Google Form Ujian...", false);
+
+                        // Auto-clear input token & NIS
+                        tokenInput.value = '';
+                        document.getElementById('inputNis').value = '';
+
+                        // 5. Redirect ke Form Ujian Google Form
+                        setTimeout(() => {
+                            window.location.href = examData.form_url;
+                        }, 1200);
+                    },
+                    (error) => {
+                        console.error("GPS Error:", error);
+                        showAlert("Gagal mendeteksi GPS. Pastikan Izin Lokasi diizinkan di HP Anda!", true);
+                        btn.disabled = false;
+                        btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+
+            } catch (err) {
+                console.error("Submit Error:", err);
+                showAlert("Terjadi kesalahan sistem: " + err.message, true);
+                btn.disabled = false;
+                btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+            }
+        }
+
+        // BIND EVENT LISTENERS
+        document.getElementById('btnCheckNis').addEventListener('click', handleCheckNis);
+        document.getElementById('btnResetNis').addEventListener('click', handleResetNis);
+        document.getElementById('btnSubmitLogin').addEventListener('click', handleSubmitLogin);
+
+        document.getElementById('inputNis').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleCheckNis();
+        });
+        document.getElementById('inputToken').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSubmitLogin();
+        });
+    </script>
+</body>
+</html>
