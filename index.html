@@ -112,6 +112,24 @@
 
         let activeStudent = null;
 
+function getPerangkatInfo() {
+  const ua = navigator.userAgent;
+  const isHeartbreak = ua.includes("HeartbreakBrowser");
+  
+  let os = "OS Tidak Dikenal";
+  if (ua.indexOf("Android") !== -1) {
+    const match = ua.match(/Android\s([0-9\.]+)/);
+    os = match ? `Android ${match[1]}` : "Android";
+  } else if (ua.indexOf("Windows") !== -1) {
+    os = "Windows PC";
+  }
+
+  return {
+    isOfficialApp: isHeartbreak,
+    osDetail: os,
+    screenRes: `${window.screen.width}x${window.screen.height}`
+  };
+}
         function showAlert(msg, isError = true) {
             const el = document.getElementById('studentAlert');
             if (!el) return;
