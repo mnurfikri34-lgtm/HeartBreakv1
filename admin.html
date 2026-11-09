@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
@@ -30,52 +31,76 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- PANEL KONTROL TOKEN UJIAN -->
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-5 h-fit">
-                <h2 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">Kelola Token Ujian</h2>
-                
-                <div id="adminAlert" class="hidden p-3 text-xs rounded-xl transition-all"></div>
+            <!-- SIDEBAR LEFT: KONTROL TOKEN & IMPORT CSV -->
+            <div class="space-y-6">
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Token Ujian</label>
-                        <input type="text" id="admToken" placeholder="Contoh: MTK01" 
-                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono tracking-wider uppercase">
+                <!-- PANEL KONTROL TOKEN UJIAN -->
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-5 h-fit">
+                    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">Kelola Token Ujian</h2>
+                    
+                    <div id="adminAlert" class="hidden p-3 text-xs rounded-xl transition-all"></div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Token Ujian</label>
+                            <input type="text" id="admToken" placeholder="Contoh: MTK01" 
+                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono tracking-wider uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nama Ujian / Mapel</label>
+                            <input type="text" id="admMapel" placeholder="Contoh: Matematika X TEI" 
+                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">URL Google Form Ujian</label>
+                            <input type="url" id="admUrl" placeholder="https://docs.google.com/forms/..." 
+                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Status Token Baru</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="admIsActive" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+
+                        <button id="btnSaveExam" type="button" 
+                                class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
+                            Simpan / Update Token
+                        </button>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nama Ujian / Mapel</label>
-                        <input type="text" id="admMapel" placeholder="Contoh: Matematika X TEI" 
-                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
+                    <!-- DAFTAR TOKEN AKTIF -->
+                    <div class="pt-4 border-t border-slate-800">
+                        <h3 class="text-xs font-bold uppercase text-slate-400 mb-3">Daftar Token Tersimpan</h3>
+                        <div id="tokenList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            <!-- Token items load here -->
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">URL Google Form Ujian</label>
-                        <input type="url" id="admUrl" placeholder="https://docs.google.com/forms/..." 
-                               class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2">
-                        <span class="text-xs font-semibold text-slate-400 uppercase">Status Token Baru</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="admIsActive" class="sr-only peer" checked>
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
-                    </div>
-
-                    <button id="btnSaveExam" type="button" 
-                            class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
-                        Simpan / Update Token
-                    </button>
                 </div>
 
-                <!-- DAFTAR TOKEN AKTIF -->
-                <div class="pt-4 border-t border-slate-800">
-                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-3">Daftar Token Tersimpan</h3>
-                    <div id="tokenList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <!-- Token items load here -->
+                <!-- PANEL IMPOR AKUN GURU (CSV) -->
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-3">
+                    <h2 class="text-sm font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
+                        <span>📥 Impor Akun Guru (CSV)</span>
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Format CSV: <code>email,password</code> (Header di baris 1)</p>
+                    
+                    <div class="space-y-3 pt-1">
+                        <input type="file" id="csvFileInput" accept=".csv" 
+                               class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-indigo-400 hover:file:bg-slate-700 cursor-pointer">
+                        
+                        <button onclick="importGuruFromCSV()" type="button" 
+                                class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
+                            Proses Impor Massal
+                        </button>
+                        <p id="importStatus" class="text-[11px] text-indigo-400 italic text-center min-h-[16px]"></p>
                     </div>
                 </div>
+
             </div>
 
             <!-- MONITORING PRESENSI REAL-TIME -->
@@ -191,14 +216,90 @@
             }
         }
 
-        async function handleToggleToken(token, newStatus) {
+        async function handleToggleToken(docId, newStatus) {
             try {
-                await db.collection('exams').doc(token).update({ is_active: newStatus });
-                showAdminAlert("Token " + token + " diubah menjadi " + (newStatus ? 'AKTIF' : 'MATI'), false);
+                await db.collection('exams').doc(docId).update({ is_active: newStatus });
+                showAdminAlert("Status token diubah menjadi " + (newStatus ? 'AKTIF' : 'MATI'), false);
             } catch (err) {
                 console.error("Firebase Error:", err);
                 showAdminAlert("Gagal mengubah status: " + err.message, true);
             }
+        }
+
+        // FUNGSI HAPUS TOKEN
+        async function handleDeleteToken(docId, tokenName) {
+            if (confirm(`Apakah Anda yakin ingin menghapus token "${tokenName}"? Ujian ini tidak akan bisa diakses siswa lagi.`)) {
+                try {
+                    await db.collection('exams').doc(docId).delete();
+                    showAdminAlert(`Token "${tokenName}" berhasil dihapus!`, false);
+                } catch (err) {
+                    console.error("Firebase Error:", err);
+                    showAdminAlert("Gagal menghapus token: " + err.message, true);
+                }
+            }
+        }
+
+        // FUNGSI IMPOR GURU DARI CSV
+        async function importGuruFromCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const statusText = document.getElementById('importStatus');
+
+            if (!fileInput || !fileInput.files.length) {
+                showAdminAlert("Pilih file CSV terlebih dahulu!", true);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+
+                let secondaryApp;
+                try {
+                    if (!firebase.apps.find(app => app.name === "Secondary")) {
+                        secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                    } else {
+                        secondaryApp = firebase.app("Secondary");
+                    }
+                    const secondaryAuth = secondaryApp.auth();
+
+                    let meledak = 0;
+                    let gagal = 0;
+
+                    if (statusText) statusText.innerText = "Memproses akun guru...";
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const [email, password] = line.split(',');
+
+                        if (email && password) {
+                            try {
+                                await secondaryAuth.createUserWithEmailAndPassword(email.trim(), password.trim());
+                                meledak++;
+                                if (statusText) statusText.innerText = `Memproses: ${meledak} akun berhasil dibuat...`;
+                            } catch (err) {
+                                console.error(`Gagal membuat ${email}:`, err.message);
+                                gagal++;
+                            }
+                        }
+                    }
+
+                    await secondaryApp.delete();
+
+                    showAdminAlert(`Impor selesai! ✅ Berhasil: ${meledak} | ❌ Gagal/Sudah Ada: ${gagal}`, false);
+                    if (statusText) statusText.innerText = `Selesai: ${meledak} akun berhasil dibuat.`;
+                    fileInput.value = '';
+                } catch (err) {
+                    console.error("CSV Import Error:", err);
+                    showAdminAlert("Gagal memproses CSV: " + err.message, true);
+                }
+            };
+
+            reader.readAsText(file);
         }
 
         // FUNGSI RESET PRESENSI
@@ -227,20 +328,34 @@
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    const docId = doc.id;
+                    const displayToken = data.token || docId;
+                    const displayName = data.nama_ujian || data.mapel || 'Ujian';
+                    const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
+
                     const item = document.createElement('div');
                     item.className = "flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs";
                     
                     item.innerHTML = `
                         <div class="truncate mr-2">
-                            <span class="font-mono font-bold text-indigo-400">${data.token}</span>
-                            <span class="text-slate-400 ml-1">(${data.nama_ujian || 'Ujian'})</span>
+                            <span class="font-mono font-bold text-indigo-400">${displayToken}</span>
+                            <span class="text-slate-400 ml-1">(${displayName})</span>
                         </div>
-                        <button type="button" 
-                                data-token="${data.token}" 
-                                data-status="${!data.is_active}"
-                                class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-colors ${data.is_active ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
-                            ${data.is_active ? 'AKTIF' : 'MATI'}
-                        </button>
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <button type="button" 
+                                    data-doc-id="${docId}" 
+                                    data-status="${!isActive}"
+                                    class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
+                                ${isActive ? 'AKTIF' : 'MATI'}
+                            </button>
+                            <button type="button" 
+                                    data-doc-id="${docId}" 
+                                    data-token="${displayToken}"
+                                    class="btn-delete-token px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-[10px] font-bold rounded-lg transition-colors active:scale-95" 
+                                    title="Hapus Token">
+                                🗑️
+                            </button>
+                        </div>
                     `;
                     list.appendChild(item);
                 });
@@ -265,7 +380,6 @@
                     docs.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Urutkan dari waktu terbaru ke terlama secara otomatis (Aman dari Firestore index error)
                 docs.sort((a, b) => {
                     const getTime = (t) => {
                         if (!t) return 0;
@@ -332,16 +446,26 @@
             const tokenListContainer = document.getElementById('tokenList');
             if (tokenListContainer) {
                 tokenListContainer.addEventListener('click', function(e) {
-                    const targetBtn = e.target.closest('.btn-toggle-status');
-                    if (targetBtn) {
-                        const token = targetBtn.getAttribute('data-token');
-                        const newStatus = targetBtn.getAttribute('data-status') === 'true';
-                        handleToggleToken(token, newStatus);
+                    // TOGGLE STATUS
+                    const toggleBtn = e.target.closest('.btn-toggle-status');
+                    if (toggleBtn) {
+                        const docId = toggleBtn.getAttribute('data-doc-id');
+                        const newStatus = toggleBtn.getAttribute('data-status') === 'true';
+                        handleToggleToken(docId, newStatus);
+                        return;
+                    }
+
+                    // HAPUS TOKEN
+                    const deleteBtn = e.target.closest('.btn-delete-token');
+                    if (deleteBtn) {
+                        const docId = deleteBtn.getAttribute('data-doc-id');
+                        const tokenName = deleteBtn.getAttribute('data-token');
+                        handleDeleteToken(docId, tokenName);
                     }
                 });
             }
 
-            // EVENT LISTENER UNTUK TOMBOL RESET PRESENSI (EVENT DELEGATION)
+            // RESET PRESENSI
             const attendanceBody = document.getElementById('attendanceTableBody');
             if (attendanceBody) {
                 attendanceBody.addEventListener('click', function(e) {
@@ -358,7 +482,6 @@
             listenAttendances();
         }
 
-        // PENGECEKAN SAFE READY STATE
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initAdmin);
         } else {
