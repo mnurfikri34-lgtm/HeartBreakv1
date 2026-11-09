@@ -89,11 +89,11 @@
 
     <script>
         // ========================================================
-        // KOORDINAT SEKOLAH & MAX RADIUS (MASUKKAN KOORDINAT ASLI)
+        // KOORDINAT SEKOLAH & MAX RADIUS
         // ========================================================
         const SCHOOL_LAT = -2.0090381455720436;  // Latitude Sekolah
-        const SCHOOL_LNG = 105.2464834656567; // Longitude Sekolah
-        const MAX_RADIUS_METERS = 200; // Toleransi Jarak Maximum (180 Meter)
+        const SCHOOL_LNG = 105.2464834656567;   // Longitude Sekolah
+        const MAX_RADIUS_METERS = 200;          // Toleransi Jarak Maximum (Meter)
 
         // CONFIGURASI FIREBASE
         const firebaseConfig = {
@@ -112,24 +112,28 @@
 
         let activeStudent = null;
 
-function getPerangkatInfo() {
-  const ua = navigator.userAgent;
-  const isHeartbreak = ua.includes("HeartbreakBrowser");
-  
-  let os = "OS Tidak Dikenal";
-  if (ua.indexOf("Android") !== -1) {
-    const match = ua.match(/Android\s([0-9\.]+)/);
-    os = match ? `Android ${match[1]}` : "Android";
-  } else if (ua.indexOf("Windows") !== -1) {
-    os = "Windows PC";
-  }
+        // FUNGSI DETEKSI INFORMASI PERANGKAT & APPS
+        function getPerangkatInfo() {
+            const ua = navigator.userAgent;
+            const isHeartbreak = ua.includes("HeartbreakBrowser");
+            
+            let os = "OS Tidak Dikenal";
+            if (ua.indexOf("Android") !== -1) {
+                const match = ua.match(/Android\s([0-9\.]+)/);
+                os = match ? `Android ${match[1]}` : "Android";
+            } else if (ua.indexOf("Windows") !== -1) {
+                os = "Windows PC";
+            } else if (ua.indexOf("Macintosh") !== -1) {
+                os = "Mac OS";
+            }
 
-  return {
-    isOfficialApp: isHeartbreak,
-    osDetail: os,
-    screenRes: `${window.screen.width}x${window.screen.height}`
-  };
-}
+            return {
+                isOfficialApp: isHeartbreak,
+                osDetail: os,
+                screenRes: `${window.screen.width}x${window.screen.height}`
+            };
+        }
+
         function showAlert(msg, isError = true) {
             const el = document.getElementById('studentAlert');
             if (!el) return;
@@ -292,7 +296,7 @@ function getPerangkatInfo() {
                             return;
                         }
 
-                        // 4. Catat Log Presensi ke Firestore
+                        // 4. Catat Log Presensi ke Firestore (Termasuk Data Perangkat)
                         btn.innerText = "Mencatat Presensi...";
                         await db.collection('attendances').add({
                             nis: activeStudent.nis,
@@ -301,7 +305,8 @@ function getPerangkatInfo() {
                             ruang: activeStudent.ruang,
                             exam_token: token,
                             distance_meters: distance,
-                            checkin_time: new Date().toISOString()
+                            checkin_time: firebase.firestore.FieldValue.serverTimestamp(),
+                            perangkat: getPerangkatInfo()
                         });
 
                         showAlert("Presensi Berhasil! Mengarahkan ke Google Form Ujian...", false);
