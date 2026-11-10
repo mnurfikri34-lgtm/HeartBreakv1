@@ -92,8 +92,8 @@
         // KOORDINAT SEKOLAH & MAX RADIUS
         // ========================================================
         const SCHOOL_LAT = -2.0090381455720436;  // Latitude Sekolah
-        const SCHOOL_LNG = 105.2464834656567;   // Longitude Sekolah
-        const MAX_RADIUS_METERS = 200;          // Toleransi Jarak Maximum (Meter)
+        const SCHOOL_LNG = 105.2464834656567; // Longitude Sekolah
+        const MAX_RADIUS_METERS = 200; // Toleransi Jarak Maximum (200 Meter)
 
         // CONFIGURASI FIREBASE
         const firebaseConfig = {
@@ -112,7 +112,6 @@
 
         let activeStudent = null;
 
-        // FUNGSI DETEKSI INFORMASI PERANGKAT & APPS
         function getPerangkatInfo() {
             const ua = navigator.userAgent;
             const isHeartbreak = ua.includes("HeartbreakBrowser");
@@ -123,8 +122,6 @@
                 os = match ? `Android ${match[1]}` : "Android";
             } else if (ua.indexOf("Windows") !== -1) {
                 os = "Windows PC";
-            } else if (ua.indexOf("Macintosh") !== -1) {
-                os = "Mac OS";
             }
 
             return {
@@ -240,9 +237,28 @@
             btn.innerText = "Memverifikasi Token...";
 
             try {
-                // 1. Cek Validitas & Status Token Ujian
-                const examDoc = await db.collection('exams').doc(token).get();
-                if (!examDoc.exists) {
+                let examData = null;
+                let examDocId = null;
+
+                // 1. CARI UJIAN BERDASARKAN FIELD 'token'
+                const querySnap = await db.collection('exams')
+                                          .where('token', '==', token)
+                                          .get();
+
+                if (!querySnap.empty) {
+                    const doc = querySnap.docs[0];
+                    examData = doc.data();
+                    examDocId = doc.id;
+                } else {
+                    // FALLBACK: CARI BERDASARKAN DOCUMENT ID (JIKA ADA DOKUMEN ID MANUAL)
+                    const docSnap = await db.collection('exams').doc(token).get();
+                    if (docSnap.exists) {
+                        examData = docSnap.data();
+                        examDocId = docSnap.id;
+                    }
+                }
+
+                if (!examData) {
                     showAlert(`Token "${token}" tidak ditemukan / salah!`, true);
                     btn.disabled = false;
                     btn.innerText = "Verifikasi Presensi & Masuk Ujian";
@@ -250,8 +266,12 @@
                     return;
                 }
 
-                const examData = examDoc.data();
-                if (!examData.is_active) {
+                // 2. CEK STATUS AKTIF UJIAN
+                const isAktif = examData.is_active !== undefined 
+                    ? examData.is_active 
+                    : (examData.isActive !== undefined ? examData.isActive : true);
+
+                if (!isAktif) {
                     showAlert(`Token "${token}" saat ini sedang TIDAK AKTIF!`, true);
                     btn.disabled = false;
                     btn.innerText = "Verifikasi Presensi & Masuk Ujian";
@@ -259,7 +279,17 @@
                     return;
                 }
 
-                // 2. Proteksi Single Session (Mencegah Login Berulang untuk Sesi Sama)
+                // 3. CEK DAN AMBIL LINK GOOGLE FORM SOAL
+                const targetUrl = examData.examUrl || examData.form_url || examData.link_form || examData.url || examData.link_gform;
+
+                if (!targetUrl || targetUrl === '#') {
+                    showAlert("Link Google Form Ujian belum dipasang oleh Guru!", true);
+                    btn.disabled = false;
+                    btn.innerText = "Verifikasi Presensi & Masuk Ujian";
+                    return;
+                }
+
+                // 4. Proteksi Single Session (Mencegah Login Berulang untuk Sesi Sama)
                 const existingLog = await db.collection('attendances')
                     .where('nis', '==', activeStudent.nis)
                     .where('exam_token', '==', token)
@@ -273,7 +303,7 @@
                     return;
                 }
 
-                // 3. Verifikasi Lokasi GPS
+                // 5. Verifikasi Lokasi GPS
                 if (!navigator.geolocation) {
                     showAlert("Browser Anda tidak mendukung lokasi GPS!", true);
                     btn.disabled = false;
@@ -296,7 +326,7 @@
                             return;
                         }
 
-                        // 4. Catat Log Presensi ke Firestore (Termasuk Data Perangkat)
+                        // 6. Catat Log Presensi ke Firestore (Termasuk Perangkat & Timestamp)
                         btn.innerText = "Mencatat Presensi...";
                         await db.collection('attendances').add({
                             nis: activeStudent.nis,
@@ -305,8 +335,8 @@
                             ruang: activeStudent.ruang,
                             exam_token: token,
                             distance_meters: distance,
-                            checkin_time: firebase.firestore.FieldValue.serverTimestamp(),
-                            perangkat: getPerangkatInfo()
+                            perangkat: getPerangkatInfo(),
+                            checkin_time: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
                         showAlert("Presensi Berhasil! Mengarahkan ke Google Form Ujian...", false);
@@ -315,9 +345,9 @@
                         tokenInput.value = '';
                         document.getElementById('inputNis').value = '';
 
-                        // 5. Redirect ke Form Ujian Google Form
+                        // 7. Redirect ke Google Form Ujian
                         setTimeout(() => {
-                            window.location.href = examData.form_url;
+                            window.location.href = targetUrl;
                         }, 1200);
                     },
                     (error) => {
