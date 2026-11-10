@@ -159,6 +159,9 @@
         }
         const db = firebase.firestore();
 
+        // Variable global untuk menyimpan ID dokumen guru yang sedang diedit
+        let selectedDocId = null;
+
         function showAdminAlert(msg, isError) {
             const el = document.getElementById('adminAlert');
             if (!el) return;
@@ -181,8 +184,8 @@
             const url = urlInput ? urlInput.value.trim() : '';
             const isActive = activeInput ? activeInput.checked : true;
 
-            if (!token || !url) {
-                showAdminAlert("Token Ujian dan Link Form Wajib Diisi!", true);
+            if (!token || !url || url === '#') {
+                showAdminAlert("Token Ujian dan Link Form Valid Wajib Diisi!", true);
                 return;
             }
 
@@ -193,15 +196,33 @@
             }
 
             try {
-                await db.collection('exams').doc(token).set({
+                const updateData = {
                     token: token,
                     nama_ujian: mapel || "Ujian",
-                    form_url: url,
-                    is_active: isActive,
-                    created_at: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                    mapel: mapel || "Ujian",
+                    examUrl: url,        // Dipakai Guru Portal
+                    form_url: url,       // Dipakai Admin / Aplikasi Siswa
+                    link_form: url,
+                    link_gform: url,
+                    url: url,
+                    is_active: isActive
+                };
 
-                showAdminAlert("Token " + token + " berhasil disimpan!", false);
+                // Jika sedang edit dokumen buatan guru, update dokumen tersebut secara langsung
+                if (selectedDocId) {
+                    await db.collection('exams').doc(selectedDocId).update(updateData);
+                    showAdminAlert("Token " + token + " berhasil dipasang ke Ujian Guru!", false);
+                } else {
+                    // Jika buat dokumen baru secara manual dari Admin
+                    await db.collection('exams').doc(token).set({
+                        ...updateData,
+                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    showAdminAlert("Token " + token + " berhasil disimpan!", false);
+                }
+
+                // Reset mode edit & form
+                selectedDocId = null;
                 if (tokenInput) tokenInput.value = '';
                 if (mapelInput) mapelInput.value = '';
                 if (urlInput) urlInput.value = '';
@@ -322,44 +343,76 @@
                 list.innerHTML = '';
 
                 if (snapshot.empty) {
-                    list.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada token.</p>';
+                    list.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada ujian dari guru.</p>';
                     return;
                 }
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const docId = doc.id;
-                    const displayToken = data.token || docId;
+                    const displayToken = (data.token && data.token.trim() !== "") 
+                        ? data.token 
+                        : '⚠️ BELUM SET TOKEN';
                     const displayName = data.nama_ujian || data.mapel || 'Ujian';
+                    const kelas = data.kelas ? `(${data.kelas})` : '';
                     const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
 
+                    // MENGAMBIL ENAM FIELD SAMA (SUDAH MENYESUAIKAN examUrl DARI GURU.HTML)
+                    const realUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || data.formUrl || data.urlForm || '';
+
                     const item = document.createElement('div');
-                    item.className = "flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs";
+                    item.className = "p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2";
                     
                     item.innerHTML = `
-                        <div class="truncate mr-2">
-                            <span class="font-mono font-bold text-indigo-400">${displayToken}</span>
-                            <span class="text-slate-400 ml-1">(${displayName})</span>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-slate-200">${displayName} ${kelas}</span>
+                                <div class="font-mono font-bold text-indigo-400 text-sm mt-0.5">${displayToken}</div>
+                            </div>
+                            <div class="flex items-center space-x-1.5 shrink-0">
+                                <button type="button" 
+                                        data-doc-id="${docId}" 
+                                        data-status="${!isActive}"
+                                        class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
+                                    ${isActive ? 'AKTIF' : 'MATI'}
+                                </button>
+                                <button type="button" 
+                                        data-doc-id="${docId}" 
+                                        data-token="${displayToken}"
+                                        class="btn-delete-token px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-[10px] font-bold rounded-lg transition-colors active:scale-95" 
+                                        title="Hapus Token">
+                                    🗑️
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-1.5 shrink-0">
-                            <button type="button" 
-                                    data-doc-id="${docId}" 
-                                    data-status="${!isActive}"
-                                    class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
-                                ${isActive ? 'AKTIF' : 'MATI'}
-                            </button>
-                            <button type="button" 
-                                    data-doc-id="${docId}" 
-                                    data-token="${displayToken}"
-                                    class="btn-delete-token px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-[10px] font-bold rounded-lg transition-colors active:scale-95" 
-                                    title="Hapus Token">
-                                🗑️
+
+                        <!-- LINK GOOGLE FORM DARI GURU -->
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[11px]">
+                            ${(realUrl && realUrl !== '#') ? `
+                                <a href="${realUrl}" target="_blank" class="text-xs text-indigo-400 hover:underline truncate max-w-[180px]" title="${realUrl}">
+                                    🔗 Buka Link Form Guru
+                                </a>
+                            ` : `
+                                <span class="text-xs text-amber-400 italic">⚠️ Link Form Belum Ada</span>
+                            `}
+                            <button type="button" onclick="quickFillToken('${docId}', '${displayName.replace(/'/g, "\\'")}', '${realUrl.replace(/'/g, "\\'")}', '${(data.token || '').replace(/'/g, "\\'")}')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                                ✏️ Edit / Set Token
                             </button>
                         </div>
                     `;
                     list.appendChild(item);
                 });
             }, err => console.error("Error listening exams:", err));
+        }
+
+        // FUNGSI ISIAN OTOMATIS FORM ADMIN
+        function quickFillToken(docId, mapel, url, existingToken) {
+            selectedDocId = docId; // Menyimpan ID dokumen agar ter-update tepat pada dokumen guru
+            document.getElementById('admToken').value = existingToken || '';
+            document.getElementById('admMapel').value = mapel || '';
+            document.getElementById('admUrl').value = (url && url !== '#') ? url : '';
+            document.getElementById('admToken').focus();
+            showAdminAlert("Mode Edit: Menghubungkan token ke dokumen guru (" + mapel + ")", false);
         }
 
         function listenAttendances() {
