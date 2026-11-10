@@ -88,12 +88,10 @@
     </div>
 
     <script>
-        // ========================================================
         // KOORDINAT SEKOLAH & MAX RADIUS
-        // ========================================================
-        const SCHOOL_LAT = -2.0090381455720436;  // Latitude Sekolah
-        const SCHOOL_LNG = 105.2464834656567; // Longitude Sekolah
-        const MAX_RADIUS_METERS = 200; // Toleransi Jarak Maximum (200 Meter)
+        const SCHOOL_LAT = -2.0090381455720436; 
+        const SCHOOL_LNG = 105.2464834656567; 
+        const MAX_RADIUS_METERS = 200; 
 
         // CONFIGURASI FIREBASE
         const firebaseConfig = {
@@ -188,13 +186,11 @@
 
                 activeStudent = doc.data();
 
-                // Isi data ke Kartu Identitas
                 document.getElementById('displayNama').innerText = activeStudent.nama || '-';
                 document.getElementById('displayNis').innerText = activeStudent.nis || '-';
                 document.getElementById('displayKelas').innerText = activeStudent.kelas || '-';
                 document.getElementById('displayRuang').innerText = activeStudent.ruang || '-';
 
-                // Pindah ke Tahap 2
                 document.getElementById('step1Container').classList.add('hidden');
                 document.getElementById('step2Container').classList.remove('hidden');
 
@@ -207,7 +203,6 @@
             }
         }
 
-        // RESET PROFIL SISWA (KEMBALI KE TAHAP 1)
         function handleResetNis() {
             activeStudent = null;
             document.getElementById('inputToken').value = '';
@@ -226,9 +221,9 @@
 
             const tokenInput = document.getElementById('inputToken');
             const btn = document.getElementById('btnSubmitLogin');
-            const token = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
+            const inputUserToken = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
 
-            if (!token) {
+            if (!inputUserToken) {
                 showAlert("Silakan masukkan Token Ujian Sesi!", true);
                 return;
             }
@@ -237,49 +232,56 @@
             btn.innerText = "Memverifikasi Token...";
 
             try {
+                // SCAN SEMUA UJIAN DI DATABASE
+                const examsSnapshot = await db.collection('exams').get();
+                
                 let examData = null;
-                let examDocId = null;
+                const foundTokensInDb = [];
 
-                // 1. CARI UJIAN BERDASARKAN FIELD 'token'
-                const querySnap = await db.collection('exams')
-                                          .where('token', '==', token)
-                                          .get();
+                examsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Kumpulkan semua variasi field yang mungkin menyimpan kode token
+                    const possibleTokens = [
+                        doc.id,
+                        data.token,
+                        data.exam_token,
+                        data.token_ujian,
+                        data.tokenUjian,
+                        data.kode_token
+                    ].filter(Boolean).map(t => t.toString().trim().toUpperCase());
 
-                if (!querySnap.empty) {
-                    const doc = querySnap.docs[0];
-                    examData = doc.data();
-                    examDocId = doc.id;
-                } else {
-                    // FALLBACK: CARI BERDASARKAN DOCUMENT ID (JIKA ADA DOKUMEN ID MANUAL)
-                    const docSnap = await db.collection('exams').doc(token).get();
-                    if (docSnap.exists) {
-                        examData = docSnap.data();
-                        examDocId = docSnap.id;
+                    foundTokensInDb.push(...possibleTokens);
+
+                    if (possibleTokens.includes(inputUserToken)) {
+                        examData = data;
                     }
-                }
+                });
+
+                console.log("--> Daftar Token yang Ada di Database Firestore:", foundTokensInDb);
 
                 if (!examData) {
-                    showAlert(`Token "${token}" tidak ditemukan / salah!`, true);
+                    showAlert(`Token "${inputUserToken}" tidak ditemukan / salah!`, true);
                     btn.disabled = false;
                     btn.innerText = "Verifikasi Presensi & Masuk Ujian";
                     tokenInput.value = '';
                     return;
                 }
 
-                // 2. CEK STATUS AKTIF UJIAN
+                // CEK STATUS AKTIF UJIAN
                 const isAktif = examData.is_active !== undefined 
                     ? examData.is_active 
                     : (examData.isActive !== undefined ? examData.isActive : true);
 
                 if (!isAktif) {
-                    showAlert(`Token "${token}" saat ini sedang TIDAK AKTIF!`, true);
+                    showAlert(`Token "${inputUserToken}" saat ini sedang TIDAK AKTIF!`, true);
                     btn.disabled = false;
                     btn.innerText = "Verifikasi Presensi & Masuk Ujian";
                     tokenInput.value = '';
                     return;
                 }
 
-                // 3. CEK DAN AMBIL LINK GOOGLE FORM SOAL
+                // AMBIL LINK GOOGLE FORM UJIAN
                 const targetUrl = examData.examUrl || examData.form_url || examData.link_form || examData.url || examData.link_gform;
 
                 if (!targetUrl || targetUrl === '#') {
@@ -289,21 +291,21 @@
                     return;
                 }
 
-                // 4. Proteksi Single Session (Mencegah Login Berulang untuk Sesi Sama)
+                // PROTEKSI SINGLE SESSION
                 const existingLog = await db.collection('attendances')
                     .where('nis', '==', activeStudent.nis)
-                    .where('exam_token', '==', token)
+                    .where('exam_token', '==', inputUserToken)
                     .get();
 
                 if (!existingLog.empty) {
-                    showAlert(`Anda sudah terdaftar presensi untuk token ${token}! Login dibatasi 1 kali per sesi.`, true);
+                    showAlert(`Anda sudah terdaftar presensi untuk token ${inputUserToken}! Login dibatasi 1 kali per sesi.`, true);
                     btn.disabled = false;
                     btn.innerText = "Verifikasi Presensi & Masuk Ujian";
                     tokenInput.value = '';
                     return;
                 }
 
-                // 5. Verifikasi Lokasi GPS
+                // VERIFIKASI LOKASI GPS
                 if (!navigator.geolocation) {
                     showAlert("Browser Anda tidak mendukung lokasi GPS!", true);
                     btn.disabled = false;
@@ -326,14 +328,14 @@
                             return;
                         }
 
-                        // 6. Catat Log Presensi ke Firestore (Termasuk Perangkat & Timestamp)
+                        // CATAT PRESENSI KE FIRESTORE
                         btn.innerText = "Mencatat Presensi...";
                         await db.collection('attendances').add({
                             nis: activeStudent.nis,
                             nama: activeStudent.nama,
                             kelas: activeStudent.kelas,
                             ruang: activeStudent.ruang,
-                            exam_token: token,
+                            exam_token: inputUserToken,
                             distance_meters: distance,
                             perangkat: getPerangkatInfo(),
                             checkin_time: firebase.firestore.FieldValue.serverTimestamp()
@@ -341,11 +343,10 @@
 
                         showAlert("Presensi Berhasil! Mengarahkan ke Google Form Ujian...", false);
 
-                        // Auto-clear input token & NIS
                         tokenInput.value = '';
                         document.getElementById('inputNis').value = '';
 
-                        // 7. Redirect ke Google Form Ujian
+                        // REDIRECT KE LINK GOOGLE FORM
                         setTimeout(() => {
                             window.location.href = targetUrl;
                         }, 1200);
