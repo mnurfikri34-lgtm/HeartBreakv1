@@ -22,7 +22,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Heartbreak Admin</h1>
+            <h1 class="text-2xl font-bold text-white tracking-tight">A2S Admin</h1>
             <p class="text-xs text-slate-400">Masukkan akun Admin untuk mengelola portal</p>
         </div>
 
@@ -56,7 +56,7 @@
         <!-- HEADER ADMIN -->
         <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-400">Heartbreak Admin Panel</h1>
+                <h1 class="text-2xl font-bold text-indigo-400">A2S Admin Panel</h1>
                 <p class="text-xs text-slate-400 mt-1">Kontrol Token Ujian, Monitoring Presensi & Aktivitas Guru</p>
             </div>
             <div class="flex items-center space-x-3">
@@ -139,11 +139,10 @@
                         </button>
                     </div>
 
-                    <!-- DAFTAR TOKEN AKTIF & TOMBOL RESET MASSAL -->
+                    <!-- DAFTAR TOKEN AKTIF & TOMBOL RESET MASSAL TOKEN -->
                     <div class="pt-4 border-t border-slate-800 space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold uppercase text-slate-400">Daftar Token Tersimpan</h3>
-                            <!-- 🧹 TOMBOL RESET TOKEN MASSAL -->
                             <button onclick="handleBulkResetTokens()" type="button" 
                                     class="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 border border-amber-800/80 text-amber-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm"
                                     title="Kosongkan semua token ujian sekaligus">
@@ -219,9 +218,17 @@
                             <h2 class="text-lg font-bold text-slate-200">Log Presensi Real-Time</h2>
                             <p class="text-xs text-slate-400">Data siswa yang berhasil masuk ke ujian akan muncul otomatis di sini</p>
                         </div>
-                        <span id="attendanceCount" class="px-3 py-1 bg-slate-800 border border-slate-700 text-indigo-400 font-mono text-xs font-bold rounded-lg">
-                            0 Siswa
-                        </span>
+                        <div class="flex items-center space-x-2">
+                            <!-- 🧹 TOMBOL RESET MASSAL PRESENSI -->
+                            <button onclick="handleBulkResetAttendance()" type="button" 
+                                    class="px-2.5 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800/80 text-red-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm"
+                                    title="Kosongkan seluruh log presensi siswa">
+                                🧹 Reset Semua Presensi
+                            </button>
+                            <span id="attendanceCount" class="px-3 py-1 bg-slate-800 border border-slate-700 text-indigo-400 font-mono text-xs font-bold rounded-lg">
+                                0 Siswa
+                            </span>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -255,7 +262,6 @@
     <script>
         console.log("--> Script Admin Dimuat Browser...");
 
-        // FIX: PENULISAN ARRAY EMAIL DIANULIR DARI TYPO KOMA
         const ADMIN_EMAILS = [
             "mnurfikri34@admin.smk.belajar.id",
             "sendygusdwiyansih58@guru.smk.belajar.id",
@@ -324,16 +330,11 @@
             const dashboard = document.getElementById('adminDashboard');
             const body = document.body;
 
-            if (user) {
-                if (ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-                    loginCard.classList.add('hidden');
-                    dashboard.classList.remove('hidden');
-                    body.classList.remove('items-center', 'justify-center');
-                    initAdmin();
-                } else {
-                    alert("⚠️ Akses Ditolak! Akun Anda (" + user.email + ") bukan akun Admin/Proktor.");
-                    auth.signOut();
-                }
+            if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+                loginCard.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                body.classList.remove('items-center', 'justify-center');
+                initAdmin();
             } else {
                 dashboard.classList.add('hidden');
                 loginCard.classList.remove('hidden');
@@ -354,7 +355,7 @@
 
         // 🧹 FUNGSI RESET TOKEN MASSAL
         async function handleBulkResetTokens() {
-            if (!confirm("⚠️ KONFIRMASI RESET MASSAL\n\nApakah Anda yakin ingin mengosongkan SEMUA token ujian?\nSiswa tidak akan bisa login ke ujian sampai token baru diset.")) {
+            if (!confirm("⚠️ KONFIRMASI RESET TOKEN MASSAL\n\nApakah Anda yakin ingin mengosongkan SEMUA token ujian?\nSiswa tidak akan bisa login ke ujian sampai token baru diset.")) {
                 return;
             }
 
@@ -385,6 +386,42 @@
             } catch (err) {
                 console.error("Bulk reset error:", err);
                 showAdminAlert("Gagal reset massal: " + err.message, true);
+            }
+        }
+
+        // 🧹 FUNGSI RESET PRESENSI MASSAL (FITUR BARU)
+        async function handleBulkResetAttendance() {
+            if (!confirm("⚠️ KONFIRMASI RESET PRESENSI MASSAL\n\nApakah Anda yakin ingin menghapus SELURUH data presensi siswa?\nSemua siswa akan diperbolehkan untuk presensi dan login ujian kembali.")) {
+                return;
+            }
+
+            try {
+                showAdminAlert("Memproses reset semua presensi...", false);
+                const snapshot = await db.collection('attendances').get();
+                
+                if (snapshot.empty) {
+                    showAdminAlert("Tidak ada data presensi yang tersimpan.", true);
+                    return;
+                }
+
+                const docs = snapshot.docs;
+                const batchChunkSize = 450; // Threshold aman Firestore (maks 500 ops)
+                let totalDeleted = 0;
+
+                for (let i = 0; i < docs.length; i += batchChunkSize) {
+                    const batch = db.batch();
+                    const chunk = docs.slice(i, i + batchChunkSize);
+                    chunk.forEach(doc => {
+                        batch.delete(doc.ref);
+                        totalDeleted++;
+                    });
+                    await batch.commit();
+                }
+
+                showAdminAlert(`Berhasil menghapus seluruh ${totalDeleted} data presensi siswa!`, false);
+            } catch (err) {
+                console.error("Bulk reset attendance error:", err);
+                showAdminAlert("Gagal reset presensi massal: " + err.message, true);
             }
         }
 
@@ -586,15 +623,10 @@
                     const realUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || data.formUrl || data.urlForm || '';
                     const spreadsheetUrl = data.spreadsheetUrl || '#';
                     
-                    // KODE BARU:
-let teacherEmail = data.createdByEmail || data.emailGuru || data.email;
-
-if (!teacherEmail || !teacherEmail.includes('@')) {
-    // Jika data lama tidak punya email, tampilkan UID singkatnya agar Wakakur tetap tau bedanya
-    teacherEmail = data.createdByUid 
-        ? `Guru (${data.createdByUid.substring(0, 6)}...)` 
-        : "Guru SMKN 1";
-}
+                    let teacherEmail = data.createdByEmail || data.emailGuru || data.email;
+                    if (!teacherEmail || !teacherEmail.includes('@')) {
+                        teacherEmail = "Guru SMKN 1";
+                    }
 
                     uniqueTeachers.add(teacherEmail);
 
