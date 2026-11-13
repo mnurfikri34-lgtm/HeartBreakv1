@@ -3,850 +3,1768 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A2S - Admin Control Center</title>
-    <link rel="shortcut icon" href="#">
-    <!-- Tailwind CSS CDN -->
+    <title>A2S CBT — Admin Control Center</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK (Compat) -->
+
+    <!-- Font Modern & Monospace -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+            background-color: #f5f7fb;
+            background-image: radial-gradient(#dbe3f0 0.8px, transparent 0.8px);
+            background-size: 24px 24px;
+        }
+
+        .font-mono, code {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px;
+        }
+
+        .field {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 13px;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 500;
+            outline: none;
+            transition: all .2s ease;
+        }
+
+        .field:hover {
+            border-color: #cbd5e1;
+        }
+
+        .field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, .12);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 13px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: .01em;
+            transition: all .2s ease;
+            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, .35);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px -4px rgba(79, 70, 229, .45);
+            filter: brightness(1.05);
+        }
+
+        .primary-btn:active {
+            transform: translateY(0);
+        }
+
+        .primary-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 13px;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all .2s ease;
+            box-shadow: 0 8px 20px -4px rgba(5, 150, 105, .3);
+        }
+
+        .success-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .success-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 13px;
+            border-radius: 11px;
+            background: #ffffff;
+            border: 1px solid #fee2e2;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 12px;
+            transition: all .2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .status-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .status-online span {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, .18);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            50% { opacity: .4; }
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid transparent;
+            transition: all .2s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .06);
+            color: #f8fafc;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, .24) 0%, rgba(79, 70, 229, .12) 100%);
+            color: #ffffff;
+            border-color: rgba(129, 140, 248, .28);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, .96);
+            backdrop-filter: blur(8px);
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, .03);
+            transition: all .25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, .07);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            color: #64748b;
+            font-weight: 800;
+        }
+
+        .stat-value {
+            font-size: 23px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 4px;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.indigo { background: #eef2ff; color: #4f46e5; border: 1px solid #e0e7ff; }
+        .stat-icon.blue   { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+        .stat-icon.green  { background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
+        .stat-icon.amber  { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+
+        .panel {
+            background: rgba(255, 255, 255, .97);
+            backdrop-filter: blur(8px);
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, .035);
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 16px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .panel-head h2 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+
+        .panel-head p {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .section-badge,
+        .count-badge {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .06em;
+            padding: 6px 11px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4f46e5;
+            border: 1px solid #e0e7ff;
+            white-space: nowrap;
+        }
+
+        .section-badge.green {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #bbf7d0;
+        }
+
+        .section-badge.teal {
+            background: #f0fdfa;
+            color: #0f766e;
+            border-color: #99f6e4;
+        }
+
+        .count-badge { letter-spacing: 0; }
+
+        .danger-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 6px 11px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: all .15s ease;
+        }
+
+        .danger-soft:hover { background: #fee2e2; }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex: 1;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0 13px;
+            color: #94a3b8;
+            transition: all .2s ease;
+        }
+
+        .search-wrap:focus-within {
+            background: #ffffff;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, .1);
+            color: #4f46e5;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            border: 0;
+            outline: 0;
+            font-size: 12.5px;
+            color: #0f172a;
+        }
+
+        .filter-select {
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 0 13px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            outline: 0;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .filter-select:focus {
+            background: #ffffff;
+            border-color: #6366f1;
+        }
+
+        .table-wrap {
+            overflow: auto;
+            max-height: 440px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .modern-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modern-table td {
+            padding: 12px;
+            border-top: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .modern-table tbody tr { transition: background .15s ease; }
+        .modern-table tbody tr:hover { background: #f8faff; }
+
+        .empty-state {
+            padding: 36px !important;
+            text-align: center;
+            color: #94a3b8 !important;
+            font-style: italic;
+        }
+
+        .file-field {
+            width: 100%;
+            font-size: 12px;
+            color: #64748b;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 13px;
+            padding: 12px;
+            background: #f8fafc;
+            transition: .2s;
+        }
+
+        .file-field:hover { border-color: #818cf8; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input { display: none; }
+
+        .switch span {
+            position: absolute;
+            inset: 0;
+            background: #cbd5e1;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .switch span:before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, .2);
+        }
+
+        .switch input:checked + span { background: #10b981; }
+        .switch input:checked + span:before { transform: translateX(20px); }
+
+        code {
+            background: #f1f5f9;
+            color: #4f46e5;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            color: white;
+            font-size: 12.5px;
+            font-weight: 700;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, .22);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #059669; }
+        .toast.error   { background: #dc2626; }
+        .toast.info    { background: #4f46e5; }
+
+        @media (max-width: 640px) {
+            .panel { padding: 16px; }
+            .toolbar { flex-direction: column; }
+            .filter-select { height: 42px; }
+            .stat-value { font-size: 19px; }
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 flex items-center justify-center">
 
-    <!-- FORM LOGIN ADMIN (MUNCUL JIKA BELUM LOGIN) -->
-    <div id="adminLoginCard" class="w-full max-w-md bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl space-y-6">
-        <div class="text-center space-y-2">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">A2S Admin</h1>
-            <p class="text-xs text-slate-400">Masukkan akun Admin untuk mengelola portal</p>
-        </div>
+<body class="min-h-screen text-slate-900 antialiased">
 
-        <div id="loginAlert" class="hidden p-3 text-xs rounded-xl transition-all border"></div>
+<!-- LOGIN -->
+<div id="adminLoginCard" class="min-h-screen flex items-center justify-center p-5 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,.18),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(16,185,129,.12),_transparent_35%)]"></div>
 
-        <form id="formAdminLogin" class="space-y-4" onsubmit="event.preventDefault(); handleAdminLogin();">
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email Admin</label>
-                <input type="email" id="loginEmail" required placeholder="admin@sekolah.sch.id" 
-                       class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm transition-all"
-                       autocomplete="email">
+    <div class="relative w-full max-w-md">
+        <div class="bg-white/95 backdrop-blur-xl border border-white shadow-2xl rounded-[2rem] p-7 md:p-9">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25">
+                    <i data-lucide="shield-check" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold tracking-[.2em] text-indigo-600 uppercase">A2S CBT</p>
+                    <h1 class="text-2xl font-extrabold text-slate-900">Admin Control Center</h1>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
-                <input type="password" id="loginPassword" required placeholder="••••••••" 
-                       class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm transition-all"
-                       autocomplete="current-password">
-            </div>
+            <p class="text-sm text-slate-500 mb-7">
+                Kelola ujian, token, akun guru, dan monitoring presensi dalam satu dashboard.
+            </p>
 
-            <button type="submit" id="btnLogin" 
-                    class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
-                Masuk ke Dashboard
-            </button>
-        </form>
-    </div>
+            <div id="loginAlert" class="hidden"></div>
 
-    <!-- MAIN DASHBOARD ADMIN -->
-    <div id="adminDashboard" class="hidden w-full max-w-7xl mx-auto space-y-6">
-        
-        <!-- HEADER ADMIN -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-indigo-400">A2S Admin Panel</h1>
-                <p class="text-xs text-slate-400 mt-1">Kontrol Token Ujian, Monitoring Presensi & Aktivitas Guru</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span id="adminStatus" class="px-3 py-1 bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-semibold rounded-full flex items-center gap-2">
-                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Firebase Connected
-                </span>
-                <button onclick="handleAdminLogout()" type="button" 
-                        class="px-3 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-xs font-semibold rounded-full transition-colors active:scale-95">
-                    🚪 Logout
+            <form id="formAdminLogin" class="space-y-4">
+                <div>
+                    <label class="field-label">Email Admin</label>
+                    <input type="email"
+                           id="loginEmail"
+                           required
+                           placeholder="admin@sekolah.sch.id"
+                           class="field"
+                           autocomplete="email">
+                </div>
+
+                <div>
+                    <label class="field-label">Password</label>
+                    <div class="relative">
+                        <input type="password"
+                               id="loginPassword"
+                               required
+                               placeholder="••••••••"
+                               class="field pr-11"
+                               autocomplete="current-password">
+                        <button type="button"
+                                onclick="const p = document.getElementById('loginPassword'); p.type = p.type === 'password' ? 'text' : 'password';"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 p-1"
+                                title="Tampilkan / Sembunyikan Password">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnLogin" class="primary-btn w-full">
+                    Masuk ke Dashboard
                 </button>
+            </form>
+
+            <div class="mt-6 flex items-center gap-2 text-[11px] text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Firebase Authentication & Firestore
             </div>
-        </div>
-
-        <!-- STATS SUMMARY BAR -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-400 uppercase font-semibold">Total Guru Aktif</p>
-                    <h3 id="statTotalGuru" class="text-2xl font-bold text-indigo-400 mt-1">0 Guru</h3>
-                </div>
-                <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">👨‍🏫</div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-400 uppercase font-semibold">Total Link Ujian</p>
-                    <h3 id="statTotalExams" class="text-2xl font-bold text-emerald-400 mt-1">0 Ujian</h3>
-                </div>
-                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">📝</div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-400 uppercase font-semibold">Presensi Masuk</p>
-                    <h3 id="statTotalAttendances" class="text-2xl font-bold text-amber-400 mt-1">0 Siswa</h3>
-                </div>
-                <div class="p-3 bg-amber-500/10 rounded-xl text-amber-400">👥</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- SIDEBAR LEFT: KONTROL TOKEN & IMPOR CSV -->
-            <div class="space-y-6">
-
-                <!-- PANEL KONTROL TOKEN UJIAN -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-5 h-fit">
-                    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">Kelola Token Ujian</h2>
-                    
-                    <div id="adminAlert" class="hidden p-3 text-xs rounded-xl transition-all"></div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Token Ujian</label>
-                            <input type="text" id="admToken" placeholder="Contoh: MTK01" 
-                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm font-mono tracking-wider uppercase">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nama Ujian / Mapel</label>
-                            <input type="text" id="admMapel" placeholder="Contoh: Matematika X TEI" 
-                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">URL Google Form Ujian</label>
-                            <input type="url" id="admUrl" placeholder="https://docs.google.com/forms/..." 
-                                   class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white text-sm">
-                        </div>
-
-                        <div class="flex items-center justify-between pt-2">
-                            <span class="text-xs font-semibold text-slate-400 uppercase">Status Token Baru</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="admIsActive" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                            </label>
-                        </div>
-
-                        <button id="btnSaveExam" type="button" 
-                                class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
-                            Simpan / Update Token
-                        </button>
-                    </div>
-
-                    <!-- DAFTAR TOKEN AKTIF & TOMBOL RESET MASSAL TOKEN -->
-                    <div class="pt-4 border-t border-slate-800 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold uppercase text-slate-400">Daftar Token Tersimpan</h3>
-                            <button onclick="handleBulkResetTokens()" type="button" 
-                                    class="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 border border-amber-800/80 text-amber-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm"
-                                    title="Kosongkan semua token ujian sekaligus">
-                                🧹 Reset Semua Token
-                            </button>
-                        </div>
-                        <div id="tokenList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            <!-- Token items load here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PANEL IMPOR AKUN GURU (CSV) -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-3">
-                    <h2 class="text-sm font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
-                        <span>📥 Impor Akun Guru (CSV)</span>
-                    </h2>
-                    <p class="text-[11px] text-slate-400">Format CSV: <code>email,password</code> (Header di baris 1)</p>
-                    
-                    <div class="space-y-3 pt-1">
-                        <input type="file" id="csvFileInput" accept=".csv" 
-                               class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-indigo-400 hover:file:bg-slate-700 cursor-pointer">
-                        
-                        <button onclick="importGuruFromCSV()" type="button" 
-                                class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
-                            Proses Impor Massal
-                        </button>
-                        <p id="importStatus" class="text-[11px] text-indigo-400 italic text-center min-h-[16px]"></p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- RIGHT COLUMN: PANEL AKTIVITAS GURU & LOG PRESENSI -->
-            <div class="lg:col-span-2 space-y-6">
-
-                <!-- PANEL AKTIVITAS GURU -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-200">Panel Aktivitas Ujian Guru</h2>
-                            <p class="text-xs text-slate-400">Pantau link ujian & spreadsheet yang di-input oleh masing-masing guru</p>
-                        </div>
-                        <span id="teacherExamCount" class="px-3 py-1 bg-indigo-950 border border-indigo-800 text-indigo-400 font-mono text-xs font-bold rounded-lg">
-                            0 Ujian Dibuat
-                        </span>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 uppercase font-semibold">
-                                    <th class="py-3 px-2">Guru (Pembuat)</th>
-                                    <th class="py-3 px-2">Mapel / Kelas</th>
-                                    <th class="py-3 px-2 text-center">Token</th>
-                                    <th class="py-3 px-2">Tautan Soal & Nilai</th>
-                                    <th class="py-3 px-2 text-center">Sakelar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="teacherActivityBody" class="divide-y divide-slate-800 text-slate-300">
-                                <tr>
-                                    <td colspan="5" class="py-8 text-center text-slate-500 italic">Belum ada aktivitas ujian dari guru...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- MONITORING PRESENSI REAL-TIME -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-200">Log Presensi Real-Time</h2>
-                            <p class="text-xs text-slate-400">Data siswa yang berhasil masuk ke ujian akan muncul otomatis di sini</p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <!-- 🧹 TOMBOL RESET MASSAL PRESENSI -->
-                            <button onclick="handleBulkResetAttendance()" type="button" 
-                                    class="px-2.5 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800/80 text-red-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm"
-                                    title="Kosongkan seluruh log presensi siswa">
-                                🧹 Reset Semua Presensi
-                            </button>
-                            <span id="attendanceCount" class="px-3 py-1 bg-slate-800 border border-slate-700 text-indigo-400 font-mono text-xs font-bold rounded-lg">
-                                0 Siswa
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 uppercase font-semibold">
-                                    <th class="py-3 px-2">Waktu</th>
-                                    <th class="py-3 px-2">NIS</th>
-                                    <th class="py-3 px-2">Nama</th>
-                                    <th class="py-3 px-2">Ruang</th>
-                                    <th class="py-3 px-2">Status Perangkat</th>
-                                    <th class="py-3 px-2">Token</th>
-                                    <th class="py-3 px-2 text-right">Jarak GPS</th>
-                                    <th class="py-3 px-2 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody" class="divide-y divide-slate-800 text-slate-300">
-                                <tr>
-                                    <td colspan="8" class="py-8 text-center text-slate-500 italic">Belum ada data presensi yang masuk...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
         </div>
     </div>
+</div>
 
-    <script>
-        console.log("--> Script Admin Dimuat Browser...");
+<!-- DASHBOARD -->
+<div id="adminDashboard" class="hidden min-h-screen">
 
-        const ADMIN_EMAILS = [
-            "mnurfikri34@admin.smk.belajar.id",
-            "sendygusdwiyansih58@guru.smk.belajar.id",
-            "erviaga.17@admin.smk.belajar.id"
-        ];
+    <!-- SIDEBAR -->
+    <aside class="fixed inset-y-0 left-0 w-72 bg-slate-950 text-white hidden lg:flex flex-col z-30">
+        <div class="px-6 py-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center font-extrabold shadow-lg shadow-indigo-500/30">
+                    A2
+                </div>
+                <div>
+                    <div class="font-extrabold tracking-tight">A2S CBT</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-[.18em]">Admin Control Center</div>
+                </div>
+            </div>
+        </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
-            authDomain: "heartbreaker-6d3ff.firebaseapp.com",
-            projectId: "heartbreaker-6d3ff",
-            storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
-            messagingSenderId: "982228317876",
-            appId: "1:982228317876:web:490a67baf6e148968009e1"
+        <nav class="p-4 space-y-1.5 flex-1">
+            <a href="#overview" class="nav-item active">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#targetGuruPanel" class="nav-item">
+                <i data-lucide="users-round" class="w-4 h-4"></i>
+                <span>Master Daftar Guru</span>
+            </a>
+            <a href="#tokenPanel" class="nav-item">
+                <i data-lucide="key-round" class="w-4 h-4"></i>
+                <span>Ujian & Token</span>
+            </a>
+            <a href="#teacherPanel" class="nav-item">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                <span>Aktivitas Guru</span>
+            </a>
+            <a href="#attendancePanel" class="nav-item">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                <span>Presensi Real-Time</span>
+            </a>
+            <a href="#importPanel" class="nav-item">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                <span>Import Akun Guru</span>
+            </a>
+        </nav>
+
+        <div class="p-5 border-t border-white/10 text-xs text-slate-400">
+            <div class="font-bold text-slate-300">A2S CBT Admin</div>
+            <span class="text-slate-500">SMKN 1 Muntok</span>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="lg:ml-72 min-h-screen">
+
+        <!-- TOPBAR -->
+        <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-slate-200">
+            <div class="px-5 md:px-8 py-4 flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[.2em] font-bold text-indigo-600">Administrator</p>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-slate-900">Dashboard</h1>
+                </div>
+
+                <div class="flex items-center gap-2 md:gap-3">
+                    <span id="adminStatus" class="status-online">
+                        <span></span>
+                        Firebase Connected
+                    </span>
+
+                    <button onclick="handleAdminLogout()" type="button" class="logout-btn">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MOBILE QUICK NAV -->
+        <div class="lg:hidden sticky top-[69px] z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 flex gap-2 overflow-x-auto">
+            <a href="#overview" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold whitespace-nowrap">Overview</a>
+            <a href="#targetGuruPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Master Guru</a>
+            <a href="#tokenPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Token</a>
+            <a href="#teacherPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Aktivitas Guru</a>
+            <a href="#attendancePanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Presensi Live</a>
+            <a href="#importPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Import Guru</a>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="p-5 md:p-8 space-y-7">
+
+            <!-- OVERVIEW -->
+            <section id="overview">
+                <div class="mb-5">
+                    <p class="text-sm text-slate-500">
+                        Selamat datang kembali. Berikut ringkasan aktivitas sistem secara real-time.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <div>
+                            <p class="stat-label">Guru Input Soal</p>
+                            <h3 id="statTotalGuru" class="stat-value">0 Guru</h3>
+                        </div>
+                        <div class="stat-icon indigo">
+                            <i data-lucide="user-check" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <p class="stat-label">Total Ujian</p>
+                            <h3 id="statTotalExams" class="stat-value">0 Ujian</h3>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <p class="stat-label">Ujian Aktif</p>
+                            <h3 id="statActiveExams" class="stat-value">0 Ujian</h3>
+                        </div>
+                        <div class="stat-icon green">
+                            <i data-lucide="radio" class="w-5 h-5 animate-pulse"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <p class="stat-label">Presensi Masuk</p>
+                            <h3 id="statTotalAttendances" class="stat-value">0 Siswa</h3>
+                        </div>
+                        <div class="stat-icon amber">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MAIN GRID -->
+            <section class="grid xl:grid-cols-3 gap-6">
+
+                <!-- LEFT COLUMN: MASTER DAFTAR GURU (CSV) + TOKEN -->
+                <div class="xl:col-span-1 space-y-6">
+
+                    <!-- MASTER DAFTAR GURU VIA IMPORT CSV -->
+                    <div id="targetGuruPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Master Daftar Guru</h2>
+                                <p>Import CSV daftar guru untuk deteksi guru belum input di portal Kepsek.</p>
+                            </div>
+                            <span class="section-badge teal">KEPSEK SYNC</span>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="field-label !mb-0">File CSV Daftar Guru</label>
+                                    <button type="button"
+                                            onclick="downloadMasterGuruTemplate()"
+                                            class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                        Template CSV ↗
+                                    </button>
+                                </div>
+
+                                <input type="file"
+                                       id="masterGuruCsvInput"
+                                       accept=".csv"
+                                       class="file-field">
+
+                                <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                                    Format kolom CSV: <code>nama,email</code> atau <code>email</code> saja (ekspor langsung dari Excel / Google Sheets).
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button id="btnImportMasterGuruCsv"
+                                        onclick="handleImportMasterGuruCSV()"
+                                        type="button"
+                                        class="success-btn flex-1">
+                                    <i data-lucide="upload" class="w-4 h-4"></i>
+                                    <span>Import & Sinkronkan</span>
+                                </button>
+
+                                <button id="btnClearMasterGuru"
+                                        onclick="handleClearMasterGuru()"
+                                        type="button"
+                                        title="Kosongkan Master Daftar Guru"
+                                        class="hidden px-3 py-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div id="previewGuruSync"
+                                 class="p-3 rounded-xl bg-teal-50/70 border border-teal-200/80 text-xs text-teal-900 font-semibold flex items-center justify-between">
+                                <span>Daftar guru belum diatur</span>
+                                <span class="font-mono font-extrabold text-teal-700">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOKEN PANEL -->
+                    <div id="tokenPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Kelola Token</h2>
+                                <p>Atur token akses ujian guru.</p>
+                            </div>
+                            <span class="section-badge">TOKEN</span>
+                        </div>
+
+                        <div id="adminAlert" class="hidden"></div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="field-label">Token Ujian</label>
+                                <input type="text"
+                                       id="admToken"
+                                       placeholder="Contoh: MTK01"
+                                       class="field font-mono uppercase tracking-widest">
+                            </div>
+
+                            <div>
+                                <label class="field-label">Nama Ujian / Mapel</label>
+                                <input type="text"
+                                       id="admMapel"
+                                       placeholder="Contoh: Matematika X TEI"
+                                       class="field">
+                            </div>
+
+                            <div>
+                                <label class="field-label">URL Google Form</label>
+                                <input type="url"
+                                       id="admUrl"
+                                       placeholder="https://docs.google.com/forms/..."
+                                       class="field">
+                            </div>
+
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700">Status Token</p>
+                                    <p class="text-[11px] text-slate-400">Izinkan siswa mengakses ujian</p>
+                                </div>
+
+                                <label class="switch">
+                                    <input type="checkbox" id="admIsActive" checked>
+                                    <span></span>
+                                </label>
+                            </div>
+
+                            <button id="btnSaveExam" type="button" class="primary-btn w-full">
+                                Simpan / Update Token
+                            </button>
+                        </div>
+
+                        <!-- TOKEN LIST -->
+                        <div class="mt-6 pt-5 border-t border-slate-200">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                                    Token Tersimpan
+                                </h3>
+
+                                <button onclick="handleBulkResetTokens()" type="button" class="danger-soft">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    Reset Semua
+                                </button>
+                            </div>
+
+                            <div id="tokenList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div class="xl:col-span-2 space-y-6">
+
+                    <!-- AKTIVITAS GURU -->
+                    <section id="teacherPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Aktivitas Ujian Guru</h2>
+                                <p>Pantau ujian yang dibuat dan token yang terpasang.</p>
+                            </div>
+                            <span id="teacherExamCount" class="count-badge">0 Ujian</span>
+                        </div>
+
+                        <div class="toolbar">
+                            <div class="search-wrap">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                                <input id="examSearch" placeholder="Cari guru, mapel, kelas, token...">
+                            </div>
+
+                            <select id="examFilter" class="filter-select">
+                                <option value="all">Semua Status</option>
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Mati</option>
+                            </select>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Guru</th>
+                                        <th>Mapel / Kelas</th>
+                                        <th>Token</th>
+                                        <th>Link</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacherActivityBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">
+                                            Belum ada aktivitas ujian dari guru...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- PRESENSI -->
+                    <section id="attendancePanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Presensi Real-Time</h2>
+                                <p>Monitoring siswa yang berhasil masuk ke ujian.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span id="attendanceCount" class="count-badge">0 Siswa</span>
+
+                                <button onclick="handleBulkResetAttendance()" type="button" class="danger-soft">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    Reset Semua
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="toolbar">
+                            <div class="search-wrap">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                                <input id="attendanceSearch" placeholder="Cari NIS, nama, ruang, token...">
+                            </div>
+
+                            <select id="attendanceFilter" class="filter-select">
+                                <option value="all">Semua Perangkat</option>
+                                <option value="official">App Resmi</option>
+                                <option value="browser">Browser / PC</option>
+                            </select>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="modern-table min-w-[950px]">
+                                <thead>
+                                    <tr>
+                                        <th>Waktu</th>
+                                        <th>NIS</th>
+                                        <th>Nama</th>
+                                        <th>Ruang</th>
+                                        <th>Perangkat</th>
+                                        <th>Token</th>
+                                        <th>GPS</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr>
+                                        <td colspan="8" class="empty-state">
+                                            Belum ada data presensi yang masuk...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                </div>
+
+            </section>
+
+            <!-- IMPORT GURU (FIREBASE AUTH) -->
+            <section id="importPanel" class="panel max-w-3xl">
+                <div class="panel-head">
+                    <div>
+                        <h2>Import Akun Guru</h2>
+                        <p>Buat akun Firebase Authentication secara massal dari file CSV.</p>
+                    </div>
+                    <span class="section-badge green">CSV</span>
+                </div>
+
+                <div class="grid md:grid-cols-[1fr_auto] gap-4 items-end">
+                    <div>
+                        <label class="field-label">File CSV</label>
+                        <input type="file" id="csvFileInput" accept=".csv" class="file-field">
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            Format: <code>email,password</code> atau <code>email,password,nama</code> dengan header pada baris pertama.
+                        </p>
+                    </div>
+
+                    <button onclick="importGuruFromCSV()" type="button" class="success-btn">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        Proses Import
+                    </button>
+                </div>
+
+                <p id="importStatus" class="text-xs text-indigo-600 font-semibold mt-4 min-h-4"></p>
+            </section>
+
+            <!-- FOOTER -->
+            <footer class="text-center text-xs text-slate-400 py-2">
+                A2S CBT Admin Control Center · SMKN 1 Muntok
+            </footer>
+
+        </div>
+    </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script>
+if (window.lucide) {
+    lucide.createIcons();
+}
+
+const ADMIN_EMAILS = [
+    "mnurfikri34@admin.smk.belajar.id",
+    "sendygusdwiyansih58@guru.smk.belajar.id",
+    "erviaga.17@admin.smk.belajar.id"
+];
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
+    authDomain: "heartbreaker-6d3ff.firebaseapp.com",
+    projectId: "heartbreaker-6d3ff",
+    storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
+    messagingSenderId: "982228317876",
+    appId: "1:982228317876:web:490a67baf6e148968009e1"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+const auth = firebase.auth();
+let selectedDocId = null;
+let currentMasterTeacherList = [];
+
+function showToast(message, type = "info") {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = "toast show " + type;
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3500);
+}
+
+function escapeHTML(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/* =========================================================
+   IMPORT CSV MASTER DAFTAR GURU (SINKRON KE KEPSEK)
+========================================================= */
+function parseMasterGuruCSV(csvText) {
+    const lines = String(csvText || "").split(/\r?\n/);
+    const map = new Map();
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        // Mendukung separator koma (,), titik koma (;), atau tab
+        const cols = trimmed
+            .split(/[,;\t]+/)
+            .map(c => c.replace(/^["']|["']$/g, "").trim())
+            .filter(Boolean);
+
+        const emailIndex = cols.findIndex(c => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c));
+        if (emailIndex === -1) return;
+
+        const email = cols[emailIndex].toLowerCase();
+        if (email === "email" || email.includes("contoh@")) return;
+
+        let nama = "";
+        if (cols.length >= 3 && emailIndex === 0) {
+            nama = cols[2];
+        } else {
+            const nameCol = cols.find((_, i) => i !== emailIndex);
+            nama = nameCol || "";
+        }
+
+        map.set(email, { email, nama });
+    });
+
+    return Array.from(map.values());
+}
+
+window.downloadMasterGuruTemplate = function() {
+    const csvContent = "nama,email\nRonal S.Kom,ronal29@guru.smk.belajar.id\nSiti Aminah S.Pd,siti@guru.smk.belajar.id\n";
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "template_master_guru_a2s.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+function updateGuruSyncPreview() {
+    const preview = document.getElementById("previewGuruSync");
+    const clearBtn = document.getElementById("btnClearMasterGuru");
+    const totalTarget = currentMasterTeacherList.length;
+
+    if (clearBtn) {
+        clearBtn.classList.toggle("hidden", totalTarget === 0);
+    }
+
+    if (!preview) return;
+
+    if (totalTarget > 0) {
+        const submittedSet = window._submittedTeacherEmails || new Set();
+        const submittedCount = currentMasterTeacherList.filter(g => submittedSet.has(g.email.toLowerCase())).length;
+        const sisa = Math.max(0, totalTarget - submittedCount);
+        const pct = Math.min(100, Math.round((submittedCount / totalTarget) * 100));
+
+        preview.innerHTML = `
+            <span>${submittedCount} / ${totalTarget} Guru (${sisa} belum input)</span>
+            <span class="font-mono font-extrabold text-teal-700">${pct}%</span>
+        `;
+    } else {
+        preview.innerHTML = `
+            <span>Daftar guru belum diatur</span>
+            <span class="font-mono font-extrabold text-slate-400">-</span>
+        `;
+    }
+}
+
+window.handleImportMasterGuruCSV = function() {
+    const input = document.getElementById("masterGuruCsvInput");
+    const btn = document.getElementById("btnImportMasterGuruCsv");
+
+    if (!input.files || !input.files.length) {
+        showToast("Pilih file CSV daftar guru terlebih dahulu.", "error");
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(event) {
+        const parsedList = parseMasterGuruCSV(event.target.result);
+
+        if (parsedList.length === 0) {
+            showToast("File CSV tidak berisi email guru yang valid.", "error");
+            return;
+        }
+
+        btn.disabled = true;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `<span>Menyimpan ${parsedList.length} guru...</span>`;
+
+        try {
+            await db.collection("settings").doc("pas").set(
+                {
+                    total_guru: parsedList.length,
+                    daftar_guru: parsedList,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_by: auth.currentUser ? auth.currentUser.email : "admin"
+                },
+                { merge: true }
+            );
+            input.value = "";
+            showToast(`Berhasil import ${parsedList.length} guru & sinkron ke portal Kepsek!`, "success");
+        } catch (error) {
+            console.error(error);
+            showToast("Gagal menyimpan CSV guru: " + error.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    };
+
+    reader.readAsText(file);
+};
+
+window.handleClearMasterGuru = async function() {
+    if (!confirm("Kosongkan Master Daftar Guru?\n\nData di portal Kepsek akan direset sampai Anda mengimport CSV baru.")) {
+        return;
+    }
+
+    try {
+        await db.collection("settings").doc("pas").set(
+            {
+                total_guru: 0,
+                daftar_guru: [],
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+        showToast("Master Daftar Guru dikosongkan.", "info");
+    } catch (error) {
+        showToast("Gagal menghapus daftar guru: " + error.message, "error");
+    }
+};
+
+function listenPasSettings() {
+    db.collection("settings").doc("pas").onSnapshot(doc => {
+        if (doc.exists && Array.isArray(doc.data().daftar_guru)) {
+            currentMasterTeacherList = doc.data().daftar_guru;
+        } else {
+            currentMasterTeacherList = [];
+        }
+        updateGuruSyncPreview();
+    }, error => {
+        console.error("Error listening settings:", error);
+    });
+}
+
+/* =========================================================
+   LOGIN & LOGOUT
+========================================================= */
+window.handleAdminLogin = async function() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const button = document.getElementById("btnLogin");
+    const alert = document.getElementById("loginAlert");
+
+    if (!email || !password) {
+        alert.innerHTML = `
+            <div class="p-3 mb-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-xl">
+                Email dan Password wajib diisi.
+            </div>
+        `;
+        alert.classList.remove("hidden");
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Memverifikasi...";
+
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        alert.classList.add("hidden");
+    } catch (error) {
+        console.error(error);
+        alert.innerHTML = `
+            <div class="p-3 mb-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-xl">
+                Gagal login: ${escapeHTML(error.message)}
+            </div>
+        `;
+        alert.classList.remove("hidden");
+    } finally {
+        button.disabled = false;
+        button.textContent = "Masuk ke Dashboard";
+    }
+};
+
+document.getElementById("formAdminLogin").addEventListener("submit", function(e) {
+    e.preventDefault();
+    window.handleAdminLogin();
+});
+
+window.handleAdminLogout = async function() {
+    if (!confirm("Apakah Anda yakin ingin keluar dari Admin Panel?")) {
+        return;
+    }
+    await auth.signOut();
+};
+
+auth.onAuthStateChanged(async user => {
+    const login = document.getElementById("adminLoginCard");
+    const dashboard = document.getElementById("adminDashboard");
+    const alert = document.getElementById("loginAlert");
+
+    if (user) {
+        const emailLower = (user.email || "").toLowerCase();
+        if (ADMIN_EMAILS.includes(emailLower)) {
+            alert.classList.add("hidden");
+            login.classList.add("hidden");
+            dashboard.classList.remove("hidden");
+            initializeAdmin();
+        } else {
+            await auth.signOut();
+            dashboard.classList.add("hidden");
+            login.classList.remove("hidden");
+            alert.innerHTML = `
+                <div class="p-3 mb-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-xl">
+                    Akses ditolak: Email <b>${escapeHTML(user.email)}</b> tidak terdaftar sebagai Admin.
+                </div>
+            `;
+            alert.classList.remove("hidden");
+        }
+    } else {
+        dashboard.classList.add("hidden");
+        login.classList.remove("hidden");
+    }
+});
+
+/* =========================================================
+   TOKEN MANAGEMENT
+========================================================= */
+async function handleSaveToken() {
+    const token = document.getElementById("admToken").value.trim().toUpperCase();
+    const mapel = document.getElementById("admMapel").value.trim();
+    const url = document.getElementById("admUrl").value.trim();
+    const isActive = document.getElementById("admIsActive").checked;
+
+    if (!token || !url) {
+        showToast("Token dan URL Google Form wajib diisi.", "error");
+        return;
+    }
+
+    const button = document.getElementById("btnSaveExam");
+    button.disabled = true;
+    button.textContent = "Menyimpan...";
+
+    try {
+        const updateData = {
+            token: token,
+            nama_ujian: mapel || "Ujian",
+            mapel: mapel || "Ujian",
+            examUrl: url,
+            form_url: url,
+            link_form: url,
+            link_gform: url,
+            url: url,
+            is_active: isActive,
+            isActive: isActive
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        let selectedDocId = null;
-
-        async function handleAdminLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            const btn = document.getElementById('btnLogin');
-            const alertEl = document.getElementById('loginAlert');
-
-            if (!email || !password) {
-                if (alertEl) {
-                    alertEl.innerText = "Email dan Password wajib diisi!";
-                    alertEl.className = "p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-xl mb-3";
-                    alertEl.classList.remove('hidden');
-                }
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Memverifikasi...";
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                if (alertEl) alertEl.classList.add('hidden');
-            } catch (err) {
-                console.error("Login error:", err);
-                if (alertEl) {
-                    alertEl.innerText = "Gagal login: " + err.message;
-                    alertEl.className = "p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-xl mb-3";
-                    alertEl.classList.remove('hidden');
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Masuk ke Dashboard";
-            }
+        if (selectedDocId) {
+            await db.collection("exams").doc(selectedDocId).update(updateData);
+            showToast(`Token ${token} berhasil dipasang.`, "success");
+        } else {
+            await db.collection("exams").doc(token).set(
+                {
+                    ...updateData,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                { merge: true }
+            );
+            showToast(`Token ${token} berhasil disimpan.`, "success");
         }
 
-        function handleAdminLogout() {
-            if (confirm("Apakah Anda yakin ingin keluar dari Admin Panel?")) {
-                auth.signOut();
-            }
+        selectedDocId = null;
+        document.getElementById("admToken").value = "";
+        document.getElementById("admMapel").value = "";
+        document.getElementById("admUrl").value = "";
+        document.getElementById("admIsActive").checked = true;
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal menyimpan: " + error.message, "error");
+    } finally {
+        button.disabled = false;
+        button.textContent = "Simpan / Update Token";
+    }
+}
+
+window.handleToggleToken = async function(docId, newStatus) {
+    try {
+        await db.collection("exams").doc(docId).update({
+            is_active: newStatus,
+            isActive: newStatus
+        });
+        showToast(newStatus ? "Ujian berhasil diaktifkan." : "Ujian berhasil dinonaktifkan.", "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal mengubah status: " + error.message, "error");
+    }
+};
+
+window.handleDeleteToken = async function(docId, tokenName) {
+    if (!confirm(`Hapus token "${tokenName}"?`)) return;
+    try {
+        await db.collection("exams").doc(docId).delete();
+        showToast("Token berhasil dihapus.", "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal menghapus token: " + error.message, "error");
+    }
+};
+
+window.handleBulkResetTokens = async function() {
+    if (!confirm("RESET SEMUA TOKEN?\n\nSemua token akan dikosongkan dan seluruh ujian akan dinonaktifkan.")) return;
+    try {
+        showToast("Memproses reset token...", "info");
+        const snapshot = await db.collection("exams").get();
+        if (snapshot.empty) {
+            showToast("Tidak ada ujian.", "error");
+            return;
+        }
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            batch.update(doc.ref, { token: "", is_active: false, isActive: false });
+        });
+        await batch.commit();
+        showToast(`${snapshot.size} ujian berhasil direset.`, "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal reset token: " + error.message, "error");
+    }
+};
+
+window.handleBulkResetAttendance = async function() {
+    if (!confirm("RESET SEMUA PRESENSI?\n\nSeluruh data presensi siswa akan dihapus.")) return;
+    try {
+        showToast("Menghapus data presensi...", "info");
+        const snapshot = await db.collection("attendances").get();
+        if (snapshot.empty) {
+            showToast("Tidak ada data presensi.", "error");
+            return;
+        }
+        const docs = snapshot.docs;
+        const chunkSize = 450;
+        for (let i = 0; i < docs.length; i += chunkSize) {
+            const batch = db.batch();
+            docs.slice(i, i + chunkSize).forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        }
+        showToast(`${docs.length} data presensi berhasil dihapus.`, "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal reset presensi: " + error.message, "error");
+    }
+};
+
+window.hapusPresensi = async function(docId, nama) {
+    if (!confirm(`Reset presensi ${nama}?`)) return;
+    try {
+        await db.collection("attendances").doc(docId).delete();
+        showToast(`Presensi ${nama} berhasil direset.`, "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal reset presensi: " + error.message, "error");
+    }
+};
+
+window.quickFillToken = function(docId, mapel, url, existingToken) {
+    selectedDocId = docId;
+    document.getElementById("admToken").value = existingToken || "";
+    document.getElementById("admMapel").value = mapel || "";
+    document.getElementById("admUrl").value = url || "";
+    document.getElementById("admToken").focus();
+    showToast("Mode edit token aktif.", "info");
+};
+
+/* =========================================================
+   LISTEN EXAMS & ATTENDANCES
+========================================================= */
+function listenExams() {
+    db.collection("exams").onSnapshot(snapshot => {
+        const tokenList = document.getElementById("tokenList");
+        const teacherBody = document.getElementById("teacherActivityBody");
+        const teacherCount = document.getElementById("teacherExamCount");
+        const totalExams = document.getElementById("statTotalExams");
+        const activeExams = document.getElementById("statActiveExams");
+        const totalGuru = document.getElementById("statTotalGuru");
+
+        tokenList.innerHTML = "";
+        teacherBody.innerHTML = "";
+
+        totalExams.textContent = `${snapshot.size} Ujian`;
+        teacherCount.textContent = `${snapshot.size} Ujian`;
+
+        if (snapshot.empty) {
+            tokenList.innerHTML = `<div class="text-xs text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">Belum ada ujian tersimpan.</div>`;
+            teacherBody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada aktivitas ujian dari guru.</td></tr>`;
+            totalGuru.textContent = "0 Guru";
+            activeExams.textContent = "0 Ujian";
+            window._submittedTeacherEmails = new Set();
+            updateGuruSyncPreview();
+            return;
         }
 
-        auth.onAuthStateChanged(user => {
-            const loginCard = document.getElementById('adminLoginCard');
-            const dashboard = document.getElementById('adminDashboard');
-            const body = document.body;
+        let activeCount = 0;
+        const teachers = new Set();
+        let teacherRows = "";
 
-            if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-                loginCard.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                body.classList.remove('items-center', 'justify-center');
-                initAdmin();
-            } else {
-                dashboard.classList.add('hidden');
-                loginCard.classList.remove('hidden');
-                body.classList.add('items-center', 'justify-center');
-            }
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const docId = doc.id;
+            const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
+            if (isActive) activeCount++;
+
+            const displayName = data.nama_ujian || data.mapel || "Ujian";
+            const kelas = data.kelas || "";
+            const token = data.token || "";
+            const displayToken = token.trim() ? token : "BELUM SET TOKEN";
+            const teacherEmail = (data.createdByEmail || data.emailGuru || data.email || "Guru SMKN 1").trim();
+            teachers.add(teacherEmail.toLowerCase());
+
+            const examUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || "";
+            const spreadsheetUrl = data.spreadsheetUrl || "";
+
+            const tokenCard = document.createElement("div");
+            tokenCard.className = "p-3.5 bg-slate-50/90 hover:bg-white border border-slate-200 hover:border-indigo-200 rounded-xl space-y-2.5 transition-all";
+            tokenCard.innerHTML = `
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="font-bold text-slate-700 text-xs truncate">${escapeHTML(displayName)}</div>
+                        <div class="font-mono font-extrabold text-indigo-600 text-sm tracking-wide mt-0.5">${escapeHTML(displayToken)}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
+                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
+                            ${isActive ? "AKTIF" : "MATI"}
+                        </button>
+                        <button type="button" onclick="handleDeleteToken('${docId}', '${escapeHTML(displayToken)}')" title="Hapus Token" class="p-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                    ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline truncate">Buka Form ↗</a>` : `<span class="text-[11px] text-amber-600 font-medium">Form belum diatur</span>`}
+                    <button type="button" onclick="quickFillToken('${docId}', '${escapeHTML(displayName)}', '${escapeHTML(examUrl)}', '${escapeHTML(token)}')" class="inline-flex items-center gap-1 text-[10px] font-bold bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 rounded-lg px-2.5 py-1 text-slate-600 hover:text-indigo-700 transition">Edit</button>
+                </div>
+            `;
+            tokenList.appendChild(tokenCard);
+
+            teacherRows += `
+                <tr>
+                    <td><div class="font-bold text-slate-800">${escapeHTML(teacherEmail)}</div></td>
+                    <td>
+                        <div class="font-bold text-slate-800">${escapeHTML(displayName)}</div>
+                        ${kelas ? `<div class="text-[11px] text-slate-400 mt-0.5">${escapeHTML(kelas)}</div>` : ""}
+                    </td>
+                    <td><span class="font-mono font-extrabold px-2.5 py-1 rounded-lg text-xs ${token ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "bg-amber-50 text-amber-700 border border-amber-200"}">${escapeHTML(displayToken)}</span></td>
+                    <td>
+                        <div class="space-y-1">
+                            ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:underline">Form Soal ↗</a>` : `<span class="block text-[11px] text-slate-400">Form tidak ada</span>`}
+                            ${spreadsheetUrl ? `<a href="${escapeHTML(spreadsheetUrl)}" target="_blank" class="block text-[11px] font-semibold text-emerald-600 hover:underline">Spreadsheet ↗</a>` : `<span class="block text-[11px] text-slate-400">Spreadsheet tidak ada</span>`}
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
+                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
+                            ${isActive ? "AKTIF" : "MATI"}
+                        </button>
+                    </td>
+                </tr>
+            `;
         });
 
-        function showAdminAlert(msg, isError) {
-            const el = document.getElementById('adminAlert');
-            if (!el) return;
-            el.innerText = msg;
-            el.className = isError 
-                ? "p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-xl mb-3"
-                : "p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-200 text-xs rounded-xl mb-3";
-            el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 4000);
+        teacherBody.innerHTML = teacherRows;
+        window._submittedTeacherEmails = teachers;
+        totalGuru.textContent = `${teachers.size} Guru`;
+        activeExams.textContent = `${activeCount} Ujian`;
+        updateGuruSyncPreview();
+    }, error => {
+        console.error("Error listening exams:", error);
+        showToast("Gagal memuat data ujian.", "error");
+    });
+}
+
+function listenAttendances() {
+    db.collection("attendances").onSnapshot(snapshot => {
+        const tbody = document.getElementById("attendanceTableBody");
+        const count = document.getElementById("attendanceCount");
+        const stat = document.getElementById("statTotalAttendances");
+
+        count.textContent = `${snapshot.size} Siswa`;
+        stat.textContent = `${snapshot.size} Siswa`;
+
+        if (snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Belum ada data presensi yang masuk.</td></tr>`;
+            return;
         }
 
-        // 🧹 FUNGSI RESET TOKEN MASSAL
-        async function handleBulkResetTokens() {
-            if (!confirm("⚠️ KONFIRMASI RESET TOKEN MASSAL\n\nApakah Anda yakin ingin mengosongkan SEMUA token ujian?\nSiswa tidak akan bisa login ke ujian sampai token baru diset.")) {
-                return;
+        const records = [];
+        snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+
+        records.sort((a, b) => {
+            function getTime(value) {
+                if (!value) return 0;
+                if (typeof value.toDate === "function") return value.toDate().getTime();
+                return new Date(value).getTime() || 0;
             }
+            return getTime(b.checkin_time) - getTime(a.checkin_time);
+        });
 
-            try {
-                showAdminAlert("Memproses reset semua token...", false);
-                const snapshot = await db.collection('exams').get();
-                
-                if (snapshot.empty) {
-                    showAdminAlert("Tidak ada data ujian di database.", true);
-                    return;
-                }
-
-                const batch = db.batch();
-                let count = 0;
-
-                snapshot.forEach(doc => {
-                    const docRef = db.collection('exams').doc(doc.id);
-                    batch.update(docRef, { 
-                        token: "",
-                        is_active: false,
-                        isActive: false
-                    });
-                    count++;
-                });
-
-                await batch.commit();
-                showAdminAlert(`Berhasil mereset token & menonaktifkan ${count} ujian!`, false);
-            } catch (err) {
-                console.error("Bulk reset error:", err);
-                showAdminAlert("Gagal reset massal: " + err.message, true);
-            }
-        }
-
-        // 🧹 FUNGSI RESET PRESENSI MASSAL (FITUR BARU)
-        async function handleBulkResetAttendance() {
-            if (!confirm("⚠️ KONFIRMASI RESET PRESENSI MASSAL\n\nApakah Anda yakin ingin menghapus SELURUH data presensi siswa?\nSemua siswa akan diperbolehkan untuk presensi dan login ujian kembali.")) {
-                return;
-            }
-
-            try {
-                showAdminAlert("Memproses reset semua presensi...", false);
-                const snapshot = await db.collection('attendances').get();
-                
-                if (snapshot.empty) {
-                    showAdminAlert("Tidak ada data presensi yang tersimpan.", true);
-                    return;
-                }
-
-                const docs = snapshot.docs;
-                const batchChunkSize = 450; // Threshold aman Firestore (maks 500 ops)
-                let totalDeleted = 0;
-
-                for (let i = 0; i < docs.length; i += batchChunkSize) {
-                    const batch = db.batch();
-                    const chunk = docs.slice(i, i + batchChunkSize);
-                    chunk.forEach(doc => {
-                        batch.delete(doc.ref);
-                        totalDeleted++;
-                    });
-                    await batch.commit();
-                }
-
-                showAdminAlert(`Berhasil menghapus seluruh ${totalDeleted} data presensi siswa!`, false);
-            } catch (err) {
-                console.error("Bulk reset attendance error:", err);
-                showAdminAlert("Gagal reset presensi massal: " + err.message, true);
-            }
-        }
-
-        async function handleSaveToken() {
-            const tokenInput = document.getElementById('admToken');
-            const mapelInput = document.getElementById('admMapel');
-            const urlInput = document.getElementById('admUrl');
-            const activeInput = document.getElementById('admIsActive');
-
-            const token = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
-            const mapel = mapelInput ? mapelInput.value.trim() : '';
-            const url = urlInput ? urlInput.value.trim() : '';
-            const isActive = activeInput ? activeInput.checked : true;
-
-            if (!token || !url || url === '#') {
-                showAdminAlert("Token Ujian dan Link Form Valid Wajib Diisi!", true);
-                return;
-            }
-
-            const btn = document.getElementById('btnSaveExam');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = "Menyimpan...";
-            }
-
-            try {
-                const updateData = {
-                    token: token,
-                    nama_ujian: mapel || "Ujian",
-                    mapel: mapel || "Ujian",
-                    examUrl: url,
-                    form_url: url,
-                    link_form: url,
-                    link_gform: url,
-                    url: url,
-                    is_active: isActive,
-                    isActive: isActive
-                };
-
-                if (selectedDocId) {
-                    await db.collection('exams').doc(selectedDocId).update(updateData);
-                    showAdminAlert("Token " + token + " berhasil dipasang ke Ujian Guru!", false);
-                } else {
-                    await db.collection('exams').doc(token).set({
-                        ...updateData,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                    showAdminAlert("Token " + token + " berhasil disimpan!", false);
-                }
-
-                selectedDocId = null;
-                if (tokenInput) tokenInput.value = '';
-                if (mapelInput) mapelInput.value = '';
-                if (urlInput) urlInput.value = '';
-            } catch (err) {
-                console.error("Firebase Error:", err);
-                showAdminAlert("Gagal menyimpan: " + err.message, true);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = "Simpan / Update Token";
+        let html = "";
+        records.forEach(data => {
+            let time = "-";
+            if (data.checkin_time) {
+                const date = typeof data.checkin_time.toDate === "function" ? data.checkin_time.toDate() : new Date(data.checkin_time);
+                if (!isNaN(date.getTime())) {
+                    time = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
                 }
             }
-        }
 
-        async function handleToggleToken(docId, newStatus) {
-            try {
-                await db.collection('exams').doc(docId).update({ 
-                    is_active: newStatus,
-                    isActive: newStatus 
-                });
-                showAdminAlert("Status token diubah menjadi " + (newStatus ? 'AKTIF' : 'MATI'), false);
-            } catch (err) {
-                console.error("Firebase Error:", err);
-                showAdminAlert("Gagal mengubah status: " + err.message, true);
+            const perangkat = data.perangkat || {};
+            const isOfficialApp = perangkat.isOfficialApp || perangkat.is_official_app;
+            const os = perangkat.osDetail || perangkat.os_detail || "Tidak diketahui";
+            const distance = Number(data.distance_meters || 0);
+
+            const deviceBadge = isOfficialApp
+                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>App Resmi <span class="font-medium text-emerald-600/80">(${escapeHTML(os)})</span></span>`
+                : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Browser/PC <span class="font-medium text-red-600/80">(${escapeHTML(os)})</span></span>`;
+
+            html += `
+                <tr>
+                    <td class="font-mono text-slate-400 font-semibold">${time}</td>
+                    <td class="font-mono font-extrabold text-indigo-600">${escapeHTML(data.nis || "-")}</td>
+                    <td class="font-bold text-slate-800">${escapeHTML(data.nama || "-")}</td>
+                    <td><span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[11px]">${escapeHTML(data.ruang || "-")}</span></td>
+                    <td>${deviceBadge}</td>
+                    <td class="font-mono font-extrabold text-emerald-600">${escapeHTML(data.exam_token || "-")}</td>
+                    <td class="font-mono font-bold ${distance <= 200 ? "text-emerald-600" : "text-red-600"}">${distance}m</td>
+                    <td><button type="button" onclick="hapusPresensi('${data.id}', '${escapeHTML(data.nama || "Siswa")}')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[10px] font-extrabold transition">Reset</button></td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }, error => {
+        console.error("Error listening attendance:", error);
+        showToast("Gagal memuat data presensi.", "error");
+    });
+}
+
+window.importGuruFromCSV = async function() {
+    const input = document.getElementById("csvFileInput");
+    const status = document.getElementById("importStatus");
+
+    if (!input.files || !input.files.length) {
+        showToast("Pilih file CSV terlebih dahulu.", "error");
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(event) {
+        const lines = event.target.result.split(/\r?\n/);
+        let secondaryApp = null;
+        let berhasil = 0;
+        let gagal = 0;
+        const importedTeachers = new Map(currentMasterTeacherList.map(g => [g.email.toLowerCase(), g]));
+
+        try {
+            if (!firebase.apps.find(app => app.name === "Secondary")) {
+                secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+            } else {
+                secondaryApp = firebase.app("Secondary");
             }
-        }
 
-        async function handleDeleteToken(docId, tokenName) {
-            if (confirm(`Apakah Anda yakin ingin menghapus token "${tokenName}"? Ujian ini tidak akan bisa diakses siswa lagi.`)) {
+            const secondaryAuth = secondaryApp.auth();
+            status.textContent = "Memproses akun guru...";
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const parts = line.split(/[,;\t]+/);
+                const email = parts[0]?.replace(/^["']|["']$/g, "").trim().toLowerCase();
+                const password = parts[1]?.replace(/^["']|["']$/g, "").trim();
+                const nama = parts[2]?.replace(/^["']|["']$/g, "").trim() || "";
+
+                if (!email || !password) {
+                    gagal++;
+                    continue;
+                }
+
+                importedTeachers.set(email, { email, nama: nama || (importedTeachers.get(email)?.nama || "") });
+
                 try {
-                    await db.collection('exams').doc(docId).delete();
-                    showAdminAlert(`Token "${tokenName}" berhasil dihapus!`, false);
-                } catch (err) {
-                    console.error("Firebase Error:", err);
-                    showAdminAlert("Gagal menghapus token: " + err.message, true);
+                    await secondaryAuth.createUserWithEmailAndPassword(email, password);
+                    berhasil++;
+                    status.textContent = `Berhasil membuat ${berhasil} akun...`;
+                } catch (error) {
+                    console.error(email, error);
+                    gagal++;
                 }
             }
-        }
 
-        async function importGuruFromCSV() {
-            const fileInput = document.getElementById('csvFileInput');
-            const statusText = document.getElementById('importStatus');
-
-            if (!fileInput || !fileInput.files.length) {
-                showAdminAlert("Pilih file CSV terlebih dahulu!", true);
-                return;
+            const mergedList = Array.from(importedTeachers.values());
+            if (mergedList.length > 0) {
+                await db.collection("settings").doc("pas").set(
+                    {
+                        total_guru: mergedList.length,
+                        daftar_guru: mergedList,
+                        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                    },
+                    { merge: true }
+                );
             }
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = async function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n');
-
-                let secondaryApp;
-                try {
-                    if (!firebase.apps.find(app => app.name === "Secondary")) {
-                        secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
-                    } else {
-                        secondaryApp = firebase.app("Secondary");
-                    }
-                    const secondaryAuth = secondaryApp.auth();
-
-                    let meledak = 0;
-                    let gagal = 0;
-
-                    if (statusText) statusText.innerText = "Memproses akun guru...";
-
-                    for (let i = 1; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (!line) continue;
-
-                        const [email, password] = line.split(',');
-
-                        if (email && password) {
-                            try {
-                                await secondaryAuth.createUserWithEmailAndPassword(email.trim(), password.trim());
-                                meledak++;
-                                if (statusText) statusText.innerText = `Memproses: ${meledak} akun berhasil dibuat...`;
-                            } catch (err) {
-                                console.error(`Gagal membuat ${email}:`, err.message);
-                                gagal++;
-                            }
-                        }
-                    }
-
-                    await secondaryApp.delete();
-
-                    showAdminAlert(`Impor selesai! ✅ Berhasil: ${meledak} | ❌ Gagal/Sudah Ada: ${gagal}`, false);
-                    if (statusText) statusText.innerText = `Selesai: ${meledak} akun berhasil dibuat.`;
-                    fileInput.value = '';
-                } catch (err) {
-                    console.error("CSV Import Error:", err);
-                    showAdminAlert("Gagal memproses CSV: " + err.message, true);
-                }
-            };
-
-            reader.readAsText(file);
+            showToast(`Import selesai. Berhasil: ${berhasil}, Gagal: ${gagal}`, "success");
+            status.textContent = `Selesai — ${berhasil} akun dibuat & disinkronkan ke Master Daftar Guru.`;
+            input.value = "";
+            await secondaryApp.delete();
+        } catch (error) {
+            console.error(error);
+            showToast("Import gagal: " + error.message, "error");
+            status.textContent = "Import gagal.";
         }
+    };
 
-        async function hapusPresensi(docId, nama) {
-            if (confirm(`Apakah Anda yakin ingin mereset presensi ${nama}? Siswa akan bisa login kembali.`)) {
-                try {
-                    await db.collection('attendances').doc(docId).delete();
-                    showAdminAlert(`Presensi ${nama} berhasil di-reset!`, false);
-                } catch (err) {
-                    console.error("Error reset presensi:", err);
-                    showAdminAlert("Gagal mereset: " + err.message, true);
-                }
-            }
-        }
+    reader.readAsText(file);
+};
 
-        function listenExams() {
-            db.collection('exams').onSnapshot(snapshot => {
-                const list = document.getElementById('tokenList');
-                const teacherTable = document.getElementById('teacherActivityBody');
-                const teacherExamCount = document.getElementById('teacherExamCount');
-                const statTotalGuru = document.getElementById('statTotalGuru');
-                const statTotalExams = document.getElementById('statTotalExams');
+function setupFilters() {
+    const examSearch = document.getElementById("examSearch");
+    const examFilter = document.getElementById("examFilter");
+    const attendanceSearch = document.getElementById("attendanceSearch");
+    const attendanceFilter = document.getElementById("attendanceFilter");
 
-                if (list) list.innerHTML = '';
-                if (teacherTable) teacherTable.innerHTML = '';
+    function filterExams() {
+        const keyword = (examSearch.value || "").toLowerCase();
+        const filter = examFilter.value;
+        document.querySelectorAll("#teacherActivityBody tr").forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const active = text.includes("aktif");
+            let visible = !keyword || text.includes(keyword);
+            if (filter === "active") visible = visible && active;
+            else if (filter === "inactive") visible = visible && !active;
+            row.style.display = visible ? "" : "none";
+        });
+    }
 
-                if (statTotalExams) statTotalExams.innerText = snapshot.size + " Ujian";
-                if (teacherExamCount) teacherExamCount.innerText = snapshot.size + " Ujian Dibuat";
+    function filterAttendance() {
+        const keyword = (attendanceSearch.value || "").toLowerCase();
+        const filter = attendanceFilter.value;
+        document.querySelectorAll("#attendanceTableBody tr").forEach(row => {
+            const text = row.innerText.toLowerCase();
+            let visible = !keyword || text.includes(keyword);
+            if (filter === "official") visible = visible && text.includes("app resmi");
+            else if (filter === "browser") visible = visible && text.includes("browser");
+            row.style.display = visible ? "" : "none";
+        });
+    }
 
-                if (snapshot.empty) {
-                    if (list) list.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada ujian dari guru.</p>';
-                    if (teacherTable) teacherTable.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500 italic">Belum ada aktivitas ujian dari guru...</td></tr>';
-                    if (statTotalGuru) statTotalGuru.innerText = "0 Guru";
-                    return;
-                }
+    examSearch.addEventListener("input", filterExams);
+    examFilter.addEventListener("change", filterExams);
+    attendanceSearch.addEventListener("input", filterAttendance);
+    attendanceFilter.addEventListener("change", filterAttendance);
 
-                const uniqueTeachers = new Set();
-                let teacherRowsHtml = '';
+    const observer = new MutationObserver(() => {
+        filterExams();
+        filterAttendance();
+    });
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const docId = doc.id;
-                    const displayToken = (data.token && data.token.trim() !== "") 
-                        ? data.token 
-                        : '⚠️ BELUM SET TOKEN';
-                    const displayName = data.nama_ujian || data.mapel || 'Ujian';
-                    const kelas = data.kelas ? `(${data.kelas})` : '';
-                    const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
+    observer.observe(document.getElementById("teacherActivityBody"), { childList: true });
+    observer.observe(document.getElementById("attendanceTableBody"), { childList: true });
+}
 
-                    const realUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || data.formUrl || data.urlForm || '';
-                    const spreadsheetUrl = data.spreadsheetUrl || '#';
-                    
-                    let teacherEmail = data.createdByEmail || data.emailGuru || data.email;
-                    if (!teacherEmail || !teacherEmail.includes('@')) {
-                        teacherEmail = "Guru SMKN 1";
-                    }
+function setupNavigation() {
+    const links = document.querySelectorAll(".nav-item");
+    links.forEach(link => {
+        link.addEventListener("click", function() {
+            links.forEach(item => item.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+}
 
-                    uniqueTeachers.add(teacherEmail);
+let adminInitialized = false;
 
-                    // 1. RENDER DAFTAR TOKEN SIDEBAR
-                    if (list) {
-                        const item = document.createElement('div');
-                        item.className = "p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2";
-                        item.innerHTML = `
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="font-bold text-slate-200">${displayName} ${kelas}</span>
-                                    <div class="font-mono font-bold text-indigo-400 text-sm mt-0.5">${displayToken}</div>
-                                </div>
-                                <div class="flex items-center space-x-1.5 shrink-0">
-                                    <button type="button" 
-                                            data-doc-id="${docId}" 
-                                            data-status="${!isActive}"
-                                            class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900' : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'}">
-                                        ${isActive ? 'AKTIF' : 'MATI'}
-                                    </button>
-                                    <button type="button" 
-                                            data-doc-id="${docId}" 
-                                            data-token="${displayToken}"
-                                            class="btn-delete-token px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-[10px] font-bold rounded-lg transition-colors active:scale-95" 
-                                            title="Hapus Token">
-                                        🗑️
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[11px]">
-                                ${(realUrl && realUrl !== '#') ? `
-                                    <a href="${realUrl}" target="_blank" class="text-xs text-indigo-400 hover:underline truncate max-w-[180px]" title="${realUrl}">
-                                        🔗 Buka Link Form
-                                    </a>
-                                ` : `
-                                    <span class="text-xs text-amber-400 italic">⚠️ Link Form Belum Ada</span>
-                                `}
-                                <button type="button" onclick="quickFillToken('${docId}', '${displayName.replace(/'/g, "\\'")}', '${realUrl.replace(/'/g, "\\'")}', '${(data.token || '').replace(/'/g, "\\'")}')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                                    ✏️ Set Token
-                                </button>
-                            </div>
-                        `;
-                        list.appendChild(item);
-                    }
+function initializeAdmin() {
+    if (adminInitialized) return;
+    adminInitialized = true;
 
-                    // 2. RENDER TABEL PANEL AKTIVITAS GURU
-                    teacherRowsHtml += `
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-2 font-semibold text-slate-200">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-indigo-400 font-mono">✉️</span>
-                                    <span class="truncate max-w-[160px]" title="${teacherEmail}">${teacherEmail}</span>
-                                </div>
-                            </td>
-                            <td class="py-3 px-2 font-semibold text-slate-300">
-                                ${displayName} <span class="text-slate-400 font-normal">${kelas}</span>
-                            </td>
-                            <td class="py-3 px-2 text-center font-mono font-bold text-emerald-400">
-                                ${displayToken}
-                            </td>
-                            <td class="py-3 px-2 space-y-1">
-                                ${(realUrl && realUrl !== '#') ? `
-                                    <a href="${realUrl}" target="_blank" class="text-[11px] text-indigo-400 hover:underline block truncate max-w-[180px]">
-                                        📝 Form Soal
-                                    </a>
-                                ` : `<span class="text-[11px] text-slate-500 italic">Form tidak ada</span>`}
-                                
-                                ${(spreadsheetUrl && spreadsheetUrl !== '#') ? `
-                                    <a href="${spreadsheetUrl}" target="_blank" class="text-[11px] text-emerald-400 hover:underline block truncate max-w-[180px]">
-                                        📊 Spreadsheet Nilai
-                                    </a>
-                                ` : `<span class="text-[11px] text-slate-500 italic">Spreadsheet tidak ada</span>`}
-                            </td>
-                            <td class="py-3 px-2 text-center">
-                                <button type="button" 
-                                        data-doc-id="${docId}" 
-                                        data-status="${!isActive}"
-                                        class="btn-toggle-status px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'}">
-                                    ${isActive ? '🟢 AKTIF' : '🔴 MATI'}
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
+    document.getElementById("btnSaveExam").addEventListener("click", handleSaveToken);
+    setupFilters();
+    setupNavigation();
+    listenPasSettings();
+    listenExams();
+    listenAttendances();
 
-                if (teacherTable) teacherTable.innerHTML = teacherRowsHtml;
-                if (statTotalGuru) statTotalGuru.innerText = uniqueTeachers.size + " Guru";
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+</script>
 
-            }, err => console.error("Error listening exams:", err));
-        }
-
-        function quickFillToken(docId, mapel, url, existingToken) {
-            selectedDocId = docId;
-            document.getElementById('admToken').value = existingToken || '';
-            document.getElementById('admMapel').value = mapel || '';
-            document.getElementById('admUrl').value = (url && url !== '#') ? url : '';
-            document.getElementById('admToken').focus();
-            showAdminAlert("Mode Edit: Menghubungkan token ke dokumen guru (" + mapel + ")", false);
-        }
-
-        function listenAttendances() {
-            db.collection('attendances').onSnapshot(snapshot => {
-                const tbody = document.getElementById('attendanceTableBody');
-                const countEl = document.getElementById('attendanceCount');
-                const statTotalAttendances = document.getElementById('statTotalAttendances');
-                
-                if (countEl) countEl.innerText = snapshot.size + " Siswa";
-                if (statTotalAttendances) statTotalAttendances.innerText = snapshot.size + " Siswa";
-                if (!tbody) return;
-
-                if (snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-slate-500 italic">Belum ada data presensi yang masuk...</td></tr>';
-                    return;
-                }
-
-                let docs = [];
-                snapshot.forEach(doc => {
-                    docs.push({ id: doc.id, ...doc.data() });
-                });
-
-                docs.sort((a, b) => {
-                    const getTime = (t) => {
-                        if (!t) return 0;
-                        if (typeof t.toDate === 'function') return t.toDate().getTime();
-                        return new Date(t).getTime() || 0;
-                    };
-                    return getTime(b.checkin_time) - getTime(a.checkin_time);
-                });
-
-                let html = '';
-                docs.forEach(data => {
-                    let timeStr = '-';
-                    if (data.checkin_time) {
-                        let dateObj = typeof data.checkin_time.toDate === 'function' 
-                            ? data.checkin_time.toDate() 
-                            : new Date(data.checkin_time);
-
-                        if (!isNaN(dateObj.getTime())) {
-                            timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                        }
-                    }
-
-                    const p = data.perangkat || {};
-                    const isApp = p.isOfficialApp || p.is_official_app;
-                    const osDetail = p.osDetail || p.os_detail || 'Luar App';
-                    
-                    const deviceBadge = isApp
-                        ? `<span class="px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold rounded-md inline-flex items-center gap-1">📱 App Resmi (${osDetail})</span>`
-                        : `<span class="px-2 py-0.5 bg-red-950 border border-red-800 text-red-400 text-[10px] font-bold rounded-md inline-flex items-center gap-1">⚠️ Browser/PC (${osDetail})</span>`;
-
-                    html += `
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-2 font-mono text-slate-400">${timeStr}</td>
-                            <td class="py-3 px-2 font-mono text-indigo-400 font-bold">${data.nis || '-'}</td>
-                            <td class="py-3 px-2 font-semibold text-slate-200">${data.nama || '-'}</td>
-                            <td class="py-3 px-2 text-slate-400">${data.ruang || '-'}</td>
-                            <td class="py-3 px-2">${deviceBadge}</td>
-                            <td class="py-3 px-2 font-mono font-bold text-emerald-400">${data.exam_token || '-'}</td>
-                            <td class="py-3 px-2 text-right font-mono ${(data.distance_meters || 0) <= 200 ? 'text-emerald-400' : 'text-red-400'}">${data.distance_meters || 0}m</td>
-                            <td class="py-3 px-2 text-center">
-                                <button type="button" 
-                                        data-doc-id="${data.id}" 
-                                        data-nama="${(data.nama || '').replace(/"/g, '&quot;')}" 
-                                        class="btn-reset-attendance px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-[10px] font-bold rounded-lg transition-colors active:scale-95">
-                                    Reset
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                tbody.innerHTML = html;
-            }, err => console.error("Error listening attendances:", err));
-        }
-
-        function initAdmin() {
-            console.log("--> Inisialisasi Admin Berjalan (User Authenticated)...");
-            const btnSave = document.getElementById('btnSaveExam');
-            if (btnSave) {
-                btnSave.onclick = handleSaveToken;
-            }
-
-            const handleToggleOrDelete = function(e) {
-                const toggleBtn = e.target.closest('.btn-toggle-status');
-                if (toggleBtn) {
-                    const docId = toggleBtn.getAttribute('data-doc-id');
-                    const newStatus = toggleBtn.getAttribute('data-status') === 'true';
-                    handleToggleToken(docId, newStatus);
-                    return;
-                }
-
-                const deleteBtn = e.target.closest('.btn-delete-token');
-                if (deleteBtn) {
-                    const docId = deleteBtn.getAttribute('data-doc-id');
-                    const tokenName = deleteBtn.getAttribute('data-token');
-                    handleDeleteToken(docId, tokenName);
-                }
-            };
-
-            const tokenListContainer = document.getElementById('tokenList');
-            if (tokenListContainer) tokenListContainer.onclick = handleToggleOrDelete;
-
-            const teacherActivityBody = document.getElementById('teacherActivityBody');
-            if (teacherActivityBody) teacherActivityBody.onclick = handleToggleOrDelete;
-
-            const attendanceBody = document.getElementById('attendanceTableBody');
-            if (attendanceBody) {
-                attendanceBody.onclick = function(e) {
-                    const btn = e.target.closest('.btn-reset-attendance');
-                    if (btn) {
-                        const docId = btn.getAttribute('data-doc-id');
-                        const nama = btn.getAttribute('data-nama');
-                        hapusPresensi(docId, nama);
-                    }
-                };
-            }
-
-            listenExams();
-            listenAttendances();
-        }
-    </script>
 </body>
 </html>
