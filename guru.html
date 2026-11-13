@@ -3,243 +3,2618 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Portal Guru - A2S CBT</title>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        soft: '0 10px 40px rgba(15, 23, 42, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, system-ui, sans-serif;
+        }
+
+        .glass {
+            background: rgba(255,255,255,.78);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .dark .glass {
+            background: rgba(15,23,42,.78);
+        }
+
+        .gradient-bg {
+            background:
+                radial-gradient(circle at top left, rgba(99,102,241,.18), transparent 35%),
+                radial-gradient(circle at top right, rgba(14,165,233,.15), transparent 30%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
+        .dark .gradient-bg {
+            background:
+                radial-gradient(circle at top left, rgba(99,102,241,.16), transparent 35%),
+                radial-gradient(circle at top right, rgba(14,165,233,.10), transparent 30%),
+                #020617;
+        }
+
+        .card-hover {
+            transition: all .25s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 45px rgba(15,23,42,.12);
+        }
+
+        .dark .card-hover:hover {
+            box-shadow: 0 18px 45px rgba(0,0,0,.35);
+        }
+
+        .fade-in {
+            animation: fadeIn .35s ease both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-dot {
+            animation: pulseDot 1.8s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(34,197,94,.5);
+            }
+            50% {
+                box-shadow: 0 0 0 7px rgba(34,197,94,0);
+            }
+        }
+
+        .modal-bg {
+            background: rgba(15,23,42,.55);
+            backdrop-filter: blur(5px);
+        }
+
+        .toast {
+            animation:
+                toastIn .3s ease,
+                toastOut .3s ease 3.7s forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                transform: translateY(15px) scale(.96);
+            }
+        }
+
+        .status-active {
+            color: #15803d;
+            background: #dcfce7;
+        }
+
+        .dark .status-active {
+            color: #86efac;
+            background: rgba(22,101,52,.25);
+        }
+
+        .status-inactive {
+            color: #b45309;
+            background: #fef3c7;
+        }
+
+        .dark .status-inactive {
+            color: #fcd34d;
+            background: rgba(146,64,14,.25);
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .dark .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
 
-    <!-- FIREBASE CONFIG -->
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
-            authDomain: "heartbreaker-6d3ff.firebaseapp.com",
-            projectId: "heartbreaker-6d3ff",
-            storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
-            messagingSenderId: "982228317876",
-            appId: "1:982228317876:web:490a67baf6e148968009e1"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-    </script>
+<body class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
 
-    <!-- 1. HALAMAN LOGIN GURU -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-slate-900">Portal Guru A2S</h1>
-                <p class="text-sm text-slate-500">Masuk untuk mengelola sakelar ujian & spreadsheet</p>
+<!-- ========================================================= -->
+<!-- LOGIN -->
+<!-- ========================================================= -->
+
+<section id="loginSection" class="min-h-screen gradient-bg flex items-center justify-center p-5">
+
+    <div class="w-full max-w-md">
+
+        <div class="text-center mb-8">
+
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl
+                        bg-gradient-to-br from-indigo-600 to-sky-500
+                        text-white shadow-xl shadow-indigo-500/25 mb-5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-10 h-10"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="1.8">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 14.5a4 4 0 100-8 4 4 0 000 8z"/>
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M19 20a7 7 0 00-14 0"/>
+                </svg>
+
             </div>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Email Guru</label>
-                    <input type="email" id="loginEmail" required placeholder="guru@smkn1muntok.sch.id" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Password</label>
-                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200">
-                    Masuk ke Dashboard
-                </button>
-            </form>
+
+            <h1 class="text-3xl font-black tracking-tight">
+                A2S <span class="text-indigo-600 dark:text-indigo-400">CBT</span>
+            </h1>
+
+            <p class="text-slate-500 dark:text-slate-400 mt-2">
+                Portal Guru
+            </p>
+
         </div>
-    </div>
 
-    <!-- 2. DASHBOARD GURU -->
-    <div id="dashboardSection" class="hidden">
-        <nav class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-3">
-                <span class="bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-sm">A2S</span>
-                <h2 class="font-bold text-lg text-slate-800">Dashboard Guru</h2>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span id="userDisplayName" class="text-sm font-medium text-slate-600"></span>
-                <button id="logoutBtn" class="text-sm text-red-600 hover:text-red-700 font-semibold">Keluar</button>
-            </div>
-        </nav>
 
-        <main class="max-w-6xl mx-auto p-6">
-            <div class="flex justify-between items-center mb-6">
+        <div class="glass rounded-3xl shadow-soft border border-white/60 dark:border-slate-800 p-7">
+
+            <div class="mb-6">
+                <h2 class="text-xl font-bold">
+                    Selamat datang 👋
+                </h2>
+
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Silakan masuk untuk mengelola ujian Anda.
+                </p>
+            </div>
+
+
+            <form id="loginForm" class="space-y-5">
+
                 <div>
-                    <h3 class="text-xl font-bold text-slate-900">Daftar Ujian Saya</h3>
-                    <p class="text-sm text-slate-500">Aktifkan/non-aktifkan ujian saat jam pelajaran berlangsung</p>
+
+                    <label class="block text-sm font-semibold mb-2">
+                        Email
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            ✉
+                        </span>
+
+                        <input
+                            id="emailInput"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            placeholder="guru@sekolah.sch.id"
+                            class="w-full pl-11 pr-4 py-3.5 rounded-2xl
+                                   border border-slate-200 dark:border-slate-700
+                                   bg-white dark:bg-slate-900
+                                   focus:outline-none focus:ring-4 focus:ring-indigo-500/10
+                                   focus:border-indigo-500 transition">
+                    </div>
+
                 </div>
-                <button onclick="toggleModal(true)" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center space-x-2 shadow-sm">
-                    <span>+ Input Link Ujian Baru</span>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold mb-2">
+                        Password
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            🔒
+                        </span>
+
+                        <input
+                            id="passwordInput"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            placeholder="Masukkan password"
+                            class="w-full pl-11 pr-12 py-3.5 rounded-2xl
+                                   border border-slate-200 dark:border-slate-700
+                                   bg-white dark:bg-slate-900
+                                   focus:outline-none focus:ring-4 focus:ring-indigo-500/10
+                                   focus:border-indigo-500 transition">
+
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="absolute right-4 top-1/2 -translate-y-1/2
+                                   text-slate-400 hover:text-indigo-500">
+                            👁
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="loginError"
+                    class="hidden rounded-2xl bg-red-50 dark:bg-red-950/30
+                           border border-red-100 dark:border-red-900/40
+                           text-red-600 dark:text-red-300 text-sm p-4">
+                </div>
+
+
+                <button
+                    id="loginButton"
+                    type="submit"
+                    class="w-full py-3.5 rounded-2xl
+                           bg-gradient-to-r from-indigo-600 to-sky-500
+                           hover:from-indigo-700 hover:to-sky-600
+                           text-white font-bold shadow-lg shadow-indigo-500/20
+                           transition active:scale-[.98]">
+
+                    <span id="loginButtonText">
+                        Masuk ke Portal
+                    </span>
+
                 </button>
-            </div>
 
-            <!-- TABEL LIST UJIAN -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
-                        <tr>
-                            <th class="p-4">Mata Pelajaran</th>
-                            <th class="p-4">Kelas</th>
-                            <th class="p-4 text-center">Token Admin</th>
-                            <th class="p-4">Hasil Siswa</th>
-                            <th class="p-4 text-center">Sakelar Ujian</th>
-                            <th class="p-4 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="examTableBody" class="divide-y divide-slate-100 text-sm">
-                        <!-- Data dinamis Firestore -->
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <!-- 3. MODAL INPUT LINK UJIAN -->
-    <div id="examModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-slate-900">Tambah Link Ujian</h3>
-            <form id="addExamForm" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Mata Pelajaran</label>
-                    <input type="text" id="mapelInput" required placeholder="Contoh: Fisika" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Kelas Target</label>
-                    <input type="text" id="kelasInput" required placeholder="Contoh: XII RPL 1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Link Soal (Google Form)</label>
-                    <input type="url" id="examUrlInput" required placeholder="https://docs.google.com/forms/d/..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Link Tanggapan (Spreadsheet)</label>
-                    <input type="url" id="spreadsheetUrlInput" required placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                </div>
-                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
-                    ℹ️ <strong>Status Bawaan:</strong> Ujian akan langsung <strong>AKTIF</strong> saat dibuat. Token ujian diatur oleh Admin Proktor.
-                </div>
-                <div class="flex justify-end space-x-2 pt-2">
-                    <button type="button" onclick="toggleModal(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-semibold">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">Simpan</button>
-                </div>
             </form>
+
         </div>
+
+
+        <p class="text-center text-xs text-slate-400 mt-6">
+            A2S CBT • Portal Guru
+        </p>
+
     </div>
 
-    <script>
-        let currentUser = null;
+</section>
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('dashboardSection').classList.remove('hidden');
-                document.getElementById('userDisplayName').innerText = user.email;
-                loadTeacherExams(user.uid);
+
+<!-- ========================================================= -->
+<!-- DASHBOARD -->
+<!-- ========================================================= -->
+
+<section id="dashboardSection" class="hidden min-h-screen bg-slate-100 dark:bg-slate-950">
+
+    <!-- NAVBAR -->
+
+    <nav class="sticky top-0 z-30 glass border-b border-slate-200/70 dark:border-slate-800">
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="h-16 flex items-center justify-between">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl
+                                bg-gradient-to-br from-indigo-600 to-sky-500
+                                text-white flex items-center justify-center
+                                font-black shadow-lg shadow-indigo-500/20">
+
+                        A2S
+
+                    </div>
+
+                    <div class="hidden sm:block">
+
+                        <div class="font-black text-sm">
+                            A2S CBT
+                        </div>
+
+                        <div class="text-xs text-slate-400">
+                            Portal Guru
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="flex items-center gap-2">
+
+                    <!-- Dark mode -->
+
+                    <button
+                        id="darkModeButton"
+                        type="button"
+                        class="w-10 h-10 rounded-xl
+                               hover:bg-slate-100 dark:hover:bg-slate-800
+                               flex items-center justify-center
+                               transition">
+
+                        <span id="darkModeIcon">🌙</span>
+
+                    </button>
+
+
+                    <div class="hidden md:flex items-center gap-3
+                                pl-3 border-l border-slate-200 dark:border-slate-700">
+
+                        <div
+                            id="userAvatar"
+                            class="w-9 h-9 rounded-full
+                                   bg-indigo-100 dark:bg-indigo-900/40
+                                   text-indigo-600 dark:text-indigo-300
+                                   flex items-center justify-center
+                                   font-bold text-sm">
+                            G
+                        </div>
+
+                        <div class="max-w-[180px]">
+
+                            <div class="text-xs text-slate-400">
+                                Login sebagai
+                            </div>
+
+                            <div
+                                id="userDisplayName"
+                                class="text-sm font-semibold truncate">
+                                -
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="logoutButton"
+                        class="ml-2 px-4 py-2.5 rounded-xl
+                               bg-slate-100 dark:bg-slate-800
+                               hover:bg-red-50 dark:hover:bg-red-950/30
+                               hover:text-red-500
+                               text-sm font-semibold transition">
+
+                        Keluar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN -->
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7">
+
+
+        <!-- HERO -->
+
+        <div class="relative overflow-hidden rounded-3xl
+                    bg-gradient-to-br from-indigo-600 via-indigo-600 to-sky-500
+                    text-white p-6 sm:p-8 shadow-xl shadow-indigo-500/20 mb-7">
+
+            <div class="absolute -right-16 -top-20 w-64 h-64 rounded-full bg-white/10"></div>
+            <div class="absolute -right-5 -bottom-32 w-72 h-72 rounded-full bg-white/5"></div>
+
+            <div class="relative z-10">
+
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+
+                    <div>
+
+                        <div class="flex items-center gap-2 mb-3">
+
+                            <span class="w-2.5 h-2.5 bg-green-300 rounded-full pulse-dot"></span>
+
+                            <span class="text-sm font-semibold text-indigo-100">
+                                Sistem Online
+                            </span>
+
+                        </div>
+
+                        <p
+                            id="greetingText"
+                            class="text-indigo-100 text-sm mb-1">
+                            Selamat pagi
+                        </p>
+
+                        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">
+                            Kelola Ujian Anda
+                        </h1>
+
+                        <p class="text-indigo-100 mt-2 max-w-xl text-sm sm:text-base">
+                            Buat, pantau, dan kelola ujian siswa dari satu tempat.
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-left lg:text-right">
+
+                        <div
+                            id="currentDate"
+                            class="text-sm font-semibold text-white">
+                            -
+                        </div>
+
+                        <div class="text-xs text-indigo-100 mt-1">
+                            Portal Guru A2S CBT
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATISTICS -->
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+
+
+            <!-- TOTAL -->
+
+            <div class="bg-white dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-800
+                        rounded-2xl p-5 shadow-sm">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Total Ujian
+                        </p>
+
+                        <p
+                            id="totalExamCount"
+                            class="text-3xl font-black mt-1">
+                            0
+                        </p>
+
+                    </div>
+
+                    <div class="w-12 h-12 rounded-2xl
+                                bg-indigo-100 dark:bg-indigo-900/30
+                                text-indigo-600 dark:text-indigo-300
+                                flex items-center justify-center">
+
+                        📚
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIVE -->
+
+            <div class="bg-white dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-800
+                        rounded-2xl p-5 shadow-sm">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Ujian Aktif
+                        </p>
+
+                        <p
+                            id="activeExamCount"
+                            class="text-3xl font-black mt-1 text-green-600 dark:text-green-400">
+                            0
+                        </p>
+
+                    </div>
+
+                    <div class="w-12 h-12 rounded-2xl
+                                bg-green-100 dark:bg-green-900/30
+                                text-green-600 dark:text-green-300
+                                flex items-center justify-center">
+
+                        ✓
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INACTIVE -->
+
+            <div class="bg-white dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-800
+                        rounded-2xl p-5 shadow-sm">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Nonaktif
+                        </p>
+
+                        <p
+                            id="inactiveExamCount"
+                            class="text-3xl font-black mt-1 text-amber-600 dark:text-amber-400">
+                            0
+                        </p>
+
+                    </div>
+
+                    <div class="w-12 h-12 rounded-2xl
+                                bg-amber-100 dark:bg-amber-900/30
+                                text-amber-600 dark:text-amber-300
+                                flex items-center justify-center">
+
+                        ⏸
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOOLBAR -->
+
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+
+
+            <div>
+
+                <h2 class="text-xl font-black">
+                    Daftar Ujian
+                </h2>
+
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Kelola ujian yang Anda buat.
+                </p>
+
+            </div>
+
+
+            <button
+                onclick="openAddModal()"
+                class="inline-flex items-center justify-center gap-2
+                       px-5 py-3 rounded-xl
+                       bg-indigo-600 hover:bg-indigo-700
+                       text-white font-bold shadow-lg shadow-indigo-500/20
+                       transition active:scale-[.98]">
+
+                <span class="text-lg">＋</span>
+
+                Buat Ujian
+
+            </button>
+
+        </div>
+
+
+        <!-- SEARCH + FILTER -->
+
+        <div class="bg-white dark:bg-slate-900
+                    border border-slate-200 dark:border-slate-800
+                    rounded-2xl p-3 mb-6">
+
+            <div class="flex flex-col md:flex-row gap-3">
+
+                <!-- SEARCH -->
+
+                <div class="relative flex-1">
+
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        🔎
+                    </span>
+
+                    <input
+                        id="searchInput"
+                        type="text"
+                        placeholder="Cari mata pelajaran atau kelas..."
+                        class="w-full pl-11 pr-4 py-3 rounded-xl
+                               bg-slate-50 dark:bg-slate-800
+                               border border-transparent
+                               focus:bg-white dark:focus:bg-slate-900
+                               focus:border-indigo-500
+                               focus:ring-4 focus:ring-indigo-500/10
+                               outline-none transition">
+
+                </div>
+
+
+                <!-- FILTER -->
+
+                <div class="flex gap-2 overflow-x-auto">
+
+                    <button
+                        data-filter="all"
+                        class="filterButton active px-4 py-3 rounded-xl
+                               text-sm font-bold whitespace-nowrap
+                               bg-indigo-600 text-white">
+                        Semua
+                    </button>
+
+                    <button
+                        data-filter="active"
+                        class="filterButton px-4 py-3 rounded-xl
+                               text-sm font-bold whitespace-nowrap
+                               bg-slate-100 dark:bg-slate-800
+                               text-slate-600 dark:text-slate-300">
+                        Aktif
+                    </button>
+
+                    <button
+                        data-filter="inactive"
+                        class="filterButton px-4 py-3 rounded-xl
+                               text-sm font-bold whitespace-nowrap
+                               bg-slate-100 dark:bg-slate-800
+                               text-slate-600 dark:text-slate-300">
+                        Nonaktif
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOADING -->
+
+        <div
+            id="loadingState"
+            class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl h-64 animate-pulse"></div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl h-64 animate-pulse"></div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl h-64 animate-pulse"></div>
+
+        </div>
+
+
+        <!-- EXAM GRID -->
+
+        <div
+            id="examGrid"
+            class="hidden grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        </div>
+
+
+        <!-- EMPTY -->
+
+        <div
+            id="emptyState"
+            class="hidden bg-white dark:bg-slate-900
+                   border border-dashed border-slate-300 dark:border-slate-700
+                   rounded-3xl p-12 text-center">
+
+            <div class="text-5xl mb-4">
+                📚
+            </div>
+
+            <h3
+                id="emptyTitle"
+                class="text-lg font-black">
+                Belum ada ujian
+            </h3>
+
+            <p
+                id="emptyDescription"
+                class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                Buat ujian pertama Anda untuk mulai menggunakan A2S CBT.
+            </p>
+
+            <button
+                onclick="openAddModal()"
+                class="mt-5 px-5 py-3 rounded-xl
+                       bg-indigo-600 hover:bg-indigo-700
+                       text-white font-bold">
+                ＋ Buat Ujian
+            </button>
+
+        </div>
+
+    </main>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ADD EXAM MODAL -->
+<!-- ========================================================= -->
+
+<div
+    id="examModal"
+    class="hidden fixed inset-0 z-50 modal-bg
+           items-center justify-center p-4">
+
+    <div
+        class="w-full max-w-lg
+               bg-white dark:bg-slate-900
+               rounded-3xl shadow-2xl
+               border border-slate-200 dark:border-slate-800
+               overflow-hidden">
+
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-xl font-black">
+                        Buat Ujian Baru
+                    </h2>
+
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Masukkan informasi ujian Anda.
+                    </p>
+
+                </div>
+
+                <button
+                    onclick="closeAddModal()"
+                    class="w-10 h-10 rounded-xl
+                           hover:bg-slate-100 dark:hover:bg-slate-800
+                           text-slate-400">
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <form
+            id="examForm"
+            class="p-6 space-y-5">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div>
+
+                    <label class="block text-sm font-bold mb-2">
+                        Mata Pelajaran
+                    </label>
+
+                    <input
+                        id="mapelInput"
+                        type="text"
+                        required
+                        placeholder="Contoh: Informatika"
+                        class="w-full px-4 py-3 rounded-xl
+                               border border-slate-200 dark:border-slate-700
+                               bg-white dark:bg-slate-950
+                               outline-none
+                               focus:border-indigo-500
+                               focus:ring-4 focus:ring-indigo-500/10">
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-bold mb-2">
+                        Kelas
+                    </label>
+
+                    <input
+                        id="kelasInput"
+                        type="text"
+                        required
+                        placeholder="Contoh: X TKJ 1"
+                        class="w-full px-4 py-3 rounded-xl
+                               border border-slate-200 dark:border-slate-700
+                               bg-white dark:bg-slate-950
+                               outline-none
+                               focus:border-indigo-500
+                               focus:ring-4 focus:ring-indigo-500/10">
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <label class="block text-sm font-bold mb-2">
+                    URL Ujian
+                </label>
+
+                <input
+                    id="examUrlInput"
+                    type="url"
+                    required
+                    placeholder="https://..."
+                    class="w-full px-4 py-3 rounded-xl
+                           border border-slate-200 dark:border-slate-700
+                           bg-white dark:bg-slate-950
+                           outline-none
+                           focus:border-indigo-500
+                           focus:ring-4 focus:ring-indigo-500/10">
+
+            </div>
+
+
+            <div>
+
+                <label class="block text-sm font-bold mb-2">
+                    URL Spreadsheet Hasil
+                </label>
+
+                <input
+                    id="spreadsheetUrlInput"
+                    type="url"
+                    placeholder="https://docs.google.com/spreadsheets/..."
+                    class="w-full px-4 py-3 rounded-xl
+                           border border-slate-200 dark:border-slate-700
+                           bg-white dark:bg-slate-950
+                           outline-none
+                           focus:border-indigo-500
+                           focus:ring-4 focus:ring-indigo-500/10">
+
+            </div>
+
+
+            <div class="rounded-2xl bg-indigo-50 dark:bg-indigo-950/30
+                        border border-indigo-100 dark:border-indigo-900/40
+                        p-4">
+
+                <div class="flex gap-3">
+
+                    <div class="text-xl">
+                        💡
+                    </div>
+
+                    <div class="text-sm">
+
+                        <p class="font-bold text-indigo-700 dark:text-indigo-300">
+                            Informasi
+                        </p>
+
+                        <p class="text-indigo-600/80 dark:text-indigo-300/70 mt-1">
+                            Ujian akan dibuat dalam keadaan aktif.
+                            Token ujian dapat diatur oleh Admin Proktor.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+
+                <button
+                    type="button"
+                    onclick="closeAddModal()"
+                    class="flex-1 py-3 rounded-xl
+                           bg-slate-100 dark:bg-slate-800
+                           hover:bg-slate-200 dark:hover:bg-slate-700
+                           font-bold">
+                    Batal
+                </button>
+
+                <button
+                    id="saveExamButton"
+                    type="submit"
+                    class="flex-1 py-3 rounded-xl
+                           bg-indigo-600 hover:bg-indigo-700
+                           text-white font-bold">
+                    Simpan Ujian
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- DETAIL MODAL -->
+<!-- ========================================================= -->
+
+<div
+    id="detailModal"
+    class="hidden fixed inset-0 z-50 modal-bg
+           items-center justify-center p-4">
+
+    <div
+        class="w-full max-w-md
+               bg-white dark:bg-slate-900
+               rounded-3xl shadow-2xl
+               border border-slate-200 dark:border-slate-800
+               overflow-hidden">
+
+        <div class="p-6">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <div
+                        id="detailBadge"
+                        class="inline-flex px-3 py-1 rounded-full
+                               text-xs font-bold status-active mb-3">
+                        AKTIF
+                    </div>
+
+                    <h2
+                        id="detailMapel"
+                        class="text-2xl font-black">
+                        -
+                    </h2>
+
+                    <p
+                        id="detailKelas"
+                        class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        -
+                    </p>
+
+                </div>
+
+                <button
+                    onclick="closeDetailModal()"
+                    class="w-10 h-10 rounded-xl
+                           hover:bg-slate-100 dark:hover:bg-slate-800">
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div class="mt-6 space-y-3">
+
+                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+
+                    <p class="text-xs text-slate-400 mb-1">
+                        Token Ujian
+                    </p>
+
+                    <div class="flex items-center justify-between gap-3">
+
+                        <p
+                            id="detailToken"
+                            class="font-black tracking-widest text-lg">
+                            -
+                        </p>
+
+                        <button
+                            id="detailCopyTokenButton"
+                            class="px-3 py-2 rounded-lg
+                                   bg-white dark:bg-slate-700
+                                   border border-slate-200 dark:border-slate-600
+                                   text-xs font-bold">
+                            Salin
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid grid-cols-2 gap-3">
+
+                    <a
+                        id="detailExamLink"
+                        href="#"
+                        target="_blank"
+                        class="py-3 rounded-xl
+                               bg-indigo-600 hover:bg-indigo-700
+                               text-white text-center
+                               font-bold text-sm">
+                        Buka Soal
+                    </a>
+
+                    <a
+                        id="detailResultLink"
+                        href="#"
+                        target="_blank"
+                        class="py-3 rounded-xl
+                               bg-slate-100 dark:bg-slate-800
+                               hover:bg-slate-200 dark:hover:bg-slate-700
+                               text-center
+                               font-bold text-sm">
+                        Lihat Hasil
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- DELETE MODAL -->
+<!-- ========================================================= -->
+
+<div
+    id="deleteModal"
+    class="hidden fixed inset-0 z-50 modal-bg
+           items-center justify-center p-4">
+
+    <div
+        class="w-full max-w-sm
+               bg-white dark:bg-slate-900
+               rounded-3xl shadow-2xl
+               border border-slate-200 dark:border-slate-800
+               p-6 text-center">
+
+        <div class="w-14 h-14 rounded-2xl
+                    bg-red-100 dark:bg-red-950/40
+                    text-red-600 dark:text-red-400
+                    flex items-center justify-center
+                    text-2xl mx-auto mb-4">
+            🗑
+        </div>
+
+        <h2 class="text-xl font-black">
+            Hapus ujian?
+        </h2>
+
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+            Data ujian ini akan dihapus dari daftar Anda.
+        </p>
+
+        <div class="flex gap-3 mt-6">
+
+            <button
+                onclick="closeDeleteModal()"
+                class="flex-1 py-3 rounded-xl
+                       bg-slate-100 dark:bg-slate-800
+                       font-bold">
+                Batal
+            </button>
+
+            <button
+                id="confirmDeleteButton"
+                class="flex-1 py-3 rounded-xl
+                       bg-red-600 hover:bg-red-700
+                       text-white font-bold">
+                Hapus
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- TOAST -->
+<!-- ========================================================= -->
+
+<div
+    id="toastContainer"
+    class="fixed bottom-5 right-5 z-[100] space-y-3 w-[calc(100%-40px)] sm:w-96">
+</div>
+
+
+<script>
+
+    // =========================================================
+    // FIREBASE CONFIG
+    // =========================================================
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBBqjwYIsddBQUUhRyY2VAiqIF7ZiYWSvw",
+        authDomain: "heartbreaker-6d3ff.firebaseapp.com",
+        projectId: "heartbreaker-6d3ff",
+        storageBucket: "heartbreaker-6d3ff.firebasestorage.app",
+        messagingSenderId: "982228317876",
+        appId: "1:982228317876:web:490a67baf6e148968009e1"
+    };
+
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+
+    // =========================================================
+    // STATE
+    // =========================================================
+
+    let allExams = [];
+    let currentFilter = "all";
+    let currentUser = null;
+    let deleteTargetId = null;
+    let unsubscribeExams = null;
+
+
+    // =========================================================
+    // ELEMENTS
+    // =========================================================
+
+    const loginSection = document.getElementById("loginSection");
+    const dashboardSection = document.getElementById("dashboardSection");
+
+    const loginForm = document.getElementById("loginForm");
+    const loginButton = document.getElementById("loginButton");
+    const loginButtonText = document.getElementById("loginButtonText");
+    const loginError = document.getElementById("loginError");
+
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+
+    const userDisplayName = document.getElementById("userDisplayName");
+    const userAvatar = document.getElementById("userAvatar");
+
+    const examGrid = document.getElementById("examGrid");
+    const loadingState = document.getElementById("loadingState");
+    const emptyState = document.getElementById("emptyState");
+
+    const searchInput = document.getElementById("searchInput");
+
+
+    // =========================================================
+    // AUTH STATE
+    // =========================================================
+
+    auth.onAuthStateChanged(user => {
+
+        if (user) {
+
+            currentUser = user;
+
+            loginSection.classList.add("hidden");
+            dashboardSection.classList.remove("hidden");
+
+            const email = user.email || "Guru";
+
+            userDisplayName.textContent = email;
+            userAvatar.textContent = getInitials(email);
+
+            updateGreeting();
+            updateDate();
+
+            loadTeacherExams(user.uid);
+
+        } else {
+
+            currentUser = null;
+
+            if (unsubscribeExams) {
+                unsubscribeExams();
+                unsubscribeExams = null;
+            }
+
+            loginSection.classList.remove("hidden");
+            dashboardSection.classList.add("hidden");
+
+        }
+
+    });
+
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
+    loginForm.addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        loginError.classList.add("hidden");
+
+        loginButton.disabled = true;
+        loginButton.classList.add("opacity-70");
+
+        loginButtonText.innerHTML = `
+            <span class="inline-flex items-center gap-2">
+                <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                Memproses...
+            </span>
+        `;
+
+        try {
+
+            await auth.signInWithEmailAndPassword(
+                emailInput.value.trim(),
+                passwordInput.value
+            );
+
+            showToast("Berhasil masuk ke Portal Guru.", "success");
+
+        } catch (error) {
+
+            loginError.textContent = getAuthErrorMessage(error);
+            loginError.classList.remove("hidden");
+
+        } finally {
+
+            loginButton.disabled = false;
+            loginButton.classList.remove("opacity-70");
+
+            loginButtonText.textContent = "Masuk ke Portal";
+
+        }
+
+    });
+
+
+    // =========================================================
+    // PASSWORD VISIBILITY
+    // =========================================================
+
+    document.getElementById("togglePassword").addEventListener("click", () => {
+
+        const isPassword = passwordInput.type === "password";
+
+        passwordInput.type = isPassword ? "text" : "password";
+
+        document.getElementById("togglePassword").textContent =
+            isPassword ? "🙈" : "👁";
+
+    });
+
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+
+        try {
+
+            await auth.signOut();
+
+            showToast("Anda telah keluar.", "success");
+
+        } catch (error) {
+
+            showToast("Gagal keluar dari akun.", "error");
+
+        }
+
+    });
+
+
+    // =========================================================
+    // LOAD EXAMS
+    // =========================================================
+
+    function loadTeacherExams(uid) {
+
+        loadingState.classList.remove("hidden");
+        examGrid.classList.add("hidden");
+        emptyState.classList.add("hidden");
+
+        if (unsubscribeExams) {
+            unsubscribeExams();
+        }
+
+        unsubscribeExams = db
+            .collection("exams")
+            .where("createdByUid", "==", uid)
+            .onSnapshot(
+                snapshot => {
+
+                    allExams = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+
+                    allExams.sort((a, b) => {
+
+                        const aTime = a.createdAt?.toMillis?.() || 0;
+                        const bTime = b.createdAt?.toMillis?.() || 0;
+
+                        return bTime - aTime;
+
+                    });
+
+                    loadingState.classList.add("hidden");
+
+                    updateStats();
+                    renderExams();
+
+                },
+
+                error => {
+
+                    console.error(error);
+
+                    loadingState.classList.add("hidden");
+
+                    showToast(
+                        "Gagal mengambil data ujian.",
+                        "error"
+                    );
+
+                }
+            );
+
+    }
+
+
+    // =========================================================
+    // RENDER
+    // =========================================================
+
+    function renderExams() {
+
+        const searchTerm =
+            searchInput.value.trim().toLowerCase();
+
+        let filtered = allExams.filter(exam => {
+
+            const active =
+                exam.isActive !== undefined
+                    ? exam.isActive
+                    : exam.is_active !== false;
+
+            const matchesFilter =
+                currentFilter === "all" ||
+                (currentFilter === "active" && active) ||
+                (currentFilter === "inactive" && !active);
+
+            const mapel =
+                String(exam.mapel || "").toLowerCase();
+
+            const kelas =
+                String(exam.kelas || "").toLowerCase();
+
+            const matchesSearch =
+                mapel.includes(searchTerm) ||
+                kelas.includes(searchTerm);
+
+            return matchesFilter && matchesSearch;
+
+        });
+
+
+        examGrid.innerHTML = "";
+
+
+        if (filtered.length === 0) {
+
+            examGrid.classList.add("hidden");
+            emptyState.classList.remove("hidden");
+
+            if (searchTerm || currentFilter !== "all") {
+
+                document.getElementById("emptyTitle").textContent =
+                    "Ujian tidak ditemukan";
+
+                document.getElementById("emptyDescription").textContent =
+                    "Coba ubah kata pencarian atau filter yang digunakan.";
+
             } else {
-                document.getElementById('loginSection').classList.remove('hidden');
-                document.getElementById('dashboardSection').classList.add('hidden');
+
+                document.getElementById("emptyTitle").textContent =
+                    "Belum ada ujian";
+
+                document.getElementById("emptyDescription").textContent =
+                    "Buat ujian pertama Anda untuk mulai menggunakan A2S CBT.";
+
             }
-        });
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            auth.signInWithEmailAndPassword(email, password).catch(err => alert("Login Gagal: " + err.message));
-        });
+            return;
 
-        document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
-
-        function loadTeacherExams(uid) {
-            db.collection('exams')
-              .where('createdByUid', '==', uid)
-              .onSnapshot(snapshot => {
-                  const tbody = document.getElementById('examTableBody');
-                  tbody.innerHTML = '';
-                  if(snapshot.empty) {
-                      tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada ujian yang didaftarkan.</td></tr>`;
-                      return;
-                  }
-                  snapshot.forEach(doc => {
-                      const data = doc.data();
-                      const tokenDisplay = data.token ? `<span class="bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border text-xs font-bold">${data.token}</span>` : `<span class="text-xs text-amber-600 italic">Menunggu Admin</span>`;
-                      
-                      // Cek status aktif (Mendukung is_active maupun isActive)
-                      const isActive = data.is_active !== undefined 
-                          ? data.is_active 
-                          : (data.isActive !== undefined ? data.isActive : true);
-
-                      const row = `
-                          <tr class="hover:bg-slate-50 transition">
-                              <td class="p-4 font-semibold text-slate-800">${data.mapel}</td>
-                              <td class="p-4 text-slate-600">${data.kelas}</td>
-                              <td class="p-4 text-center">${tokenDisplay}</td>
-                              <td class="p-4">
-                                  <a href="${data.spreadsheetUrl}" target="_blank" class="text-emerald-600 font-semibold text-xs flex items-center space-x-1 hover:underline">
-                                      📊 Lihat Hasil Nilai
-                                  </a>
-                              </td>
-                              <td class="p-4 text-center">
-                                  <button onclick="toggleExamStatus('${doc.id}', ${isActive})" 
-                                          class="px-3 py-1.5 rounded-full text-xs font-bold transition ${isActive ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
-                                      ${isActive ? '🟢 UJIAN AKTIF' : '🔴 NON-AKTIF'}
-                                  </button>
-                              </td>
-                              <td class="p-4 text-center">
-                                  <button onclick="deleteExam('${doc.id}')" class="text-red-500 hover:text-red-700 text-xs font-semibold">Hapus</button>
-                              </td>
-                          </tr>
-                      `;
-                      tbody.innerHTML += row;
-                  });
-              });
         }
 
-        document.getElementById('addExamForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const examUrl = document.getElementById('examUrlInput').value;
 
-            db.collection('exams').add({
-                createdByUid: currentUser.uid,
-                createdByEmail: currentUser.email, // 👈 TAMBAHKAN BARIS INI
-                mapel: document.getElementById('mapelInput').value,
-                kelas: document.getElementById('kelasInput').value,
-                examUrl: examUrl,
-                form_url: examUrl, // Menyimpan versi kompatibel
-                link_form: examUrl,
-                spreadsheetUrl: document.getElementById('spreadsheetUrlInput').value,
-                token: "",
-                isActive: true,
-                is_active: true, // Menyimpan versi kompatibel
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                toggleModal(false);
-                document.getElementById('addExamForm').reset();
-            }).catch(err => alert("Gagal menambah ujian: " + err.message));
+        emptyState.classList.add("hidden");
+        examGrid.classList.remove("hidden");
+
+
+        filtered.forEach((exam, index) => {
+
+            const card = createExamCard(exam, index);
+
+            examGrid.appendChild(card);
+
         });
 
-        // FUNGSI PERBAIKAN TOGGLE (SINKRON DENGAN ADMIN & SISWA)
-        function toggleExamStatus(id, currentStatus) {
-            const nextStatus = !currentStatus;
-            db.collection('exams').doc(id).update({
-                isActive: nextStatus,
-                is_active: nextStatus // Update kedua field sekaligus
-            }).catch(err => {
-                console.error("Error update status:", err);
-                alert("Gagal mengubah status: " + err.message);
+    }
+
+
+    // =========================================================
+    // CREATE EXAM CARD
+    // =========================================================
+
+    function createExamCard(exam, index) {
+
+        const active =
+            exam.isActive !== undefined
+                ? exam.isActive
+                : exam.is_active !== false;
+
+        const mapel = exam.mapel || "Tanpa nama";
+        const kelas = exam.kelas || "-";
+
+        const token =
+            exam.token && exam.token.trim()
+                ? exam.token
+                : "Menunggu Admin";
+
+        const initials = getSubjectInitials(mapel);
+
+        const card = document.createElement("div");
+
+        card.className = `
+            fade-in
+            bg-white dark:bg-slate-900
+            border border-slate-200 dark:border-slate-800
+            rounded-3xl
+            p-5
+            card-hover
+            relative
+            overflow-hidden
+        `;
+
+        card.style.animationDelay = `${index * 50}ms`;
+
+
+        card.innerHTML = `
+
+            <div class="absolute top-0 left-0 right-0 h-1
+                        ${active
+                            ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                            : "bg-gradient-to-r from-amber-400 to-orange-500"}">
+            </div>
+
+
+            <div class="flex items-start justify-between gap-3 mb-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-12 h-12 rounded-2xl
+                                bg-gradient-to-br from-indigo-500 to-sky-500
+                                text-white
+                                flex items-center justify-center
+                                font-black shadow-lg shadow-indigo-500/20">
+
+                        ${escapeHTML(initials)}
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-black text-lg leading-tight">
+                            ${escapeHTML(mapel)}
+                        </h3>
+
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            ${escapeHTML(kelas)}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <span class="
+                    ${active ? "status-active" : "status-inactive"}
+                    px-3 py-1.5 rounded-full
+                    text-xs font-black
+                    inline-flex items-center gap-1.5
+                ">
+
+                    <span class="w-1.5 h-1.5 rounded-full
+                        ${active ? "bg-green-500" : "bg-amber-500"}">
+                    </span>
+
+                    ${active ? "AKTIF" : "NONAKTIF"}
+
+                </span>
+
+            </div>
+
+
+            <!-- TOKEN -->
+
+            <div class="rounded-2xl
+                        bg-slate-50 dark:bg-slate-800
+                        border border-slate-100 dark:border-slate-700
+                        p-4 mb-4">
+
+                <div class="flex items-center justify-between gap-3">
+
+                    <div>
+
+                        <p class="text-[11px] uppercase tracking-wider
+                                  font-bold text-slate-400">
+                            Token Ujian
+                        </p>
+
+                        <p class="font-black text-lg tracking-widest mt-1
+                                  ${token === "Menunggu Admin"
+                                    ? "text-slate-400 tracking-normal text-sm"
+                                    : ""}">
+                            ${escapeHTML(token)}
+                        </p>
+
+                    </div>
+
+
+                    ${
+                        token !== "Menunggu Admin"
+                        ? `
+                            <button
+                                onclick="copyToken('${escapeJS(token)}')"
+                                class="w-10 h-10 rounded-xl
+                                       bg-white dark:bg-slate-700
+                                       border border-slate-200 dark:border-slate-600
+                                       hover:border-indigo-400
+                                       hover:text-indigo-600
+                                       flex items-center justify-center
+                                       transition"
+                                title="Salin token">
+                                📋
+                            </button>
+                        `
+                        : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="grid grid-cols-2 gap-2 mb-2">
+
+                <a
+                    href="${escapeAttribute(exam.examUrl || exam.form_url || exam.link_form || "#")}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="
+                        py-2.5 rounded-xl
+                        bg-indigo-600 hover:bg-indigo-700
+                        text-white
+                        text-sm font-bold
+                        text-center
+                        transition
+                        ${!getExamUrl(exam) ? "pointer-events-none opacity-40" : ""}
+                    ">
+                    ↗ Buka Soal
+                </a>
+
+
+                <a
+                    href="${escapeAttribute(exam.spreadsheetUrl || "#")}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="
+                        py-2.5 rounded-xl
+                        bg-slate-100 dark:bg-slate-800
+                        hover:bg-slate-200 dark:hover:bg-slate-700
+                        text-slate-700 dark:text-slate-200
+                        text-sm font-bold
+                        text-center
+                        transition
+                        ${!exam.spreadsheetUrl ? "pointer-events-none opacity-40" : ""}
+                    ">
+                    📊 Hasil
+                </a>
+
+            </div>
+
+
+            <div class="grid grid-cols-3 gap-2">
+
+                <button
+                    onclick="openDetailModal('${exam.id}')"
+                    class="
+                        py-2.5 rounded-xl
+                        bg-slate-100 dark:bg-slate-800
+                        hover:bg-slate-200 dark:hover:bg-slate-700
+                        text-sm font-bold
+                        transition
+                    ">
+                    Detail
+                </button>
+
+
+                <button
+                    onclick="toggleExamStatus('${exam.id}', ${!active})"
+                    class="
+                        py-2.5 rounded-xl
+                        ${active
+                            ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"
+                            : "bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400"}
+                        text-sm font-bold
+                        transition
+                    ">
+                    ${active ? "Nonaktifkan" : "Aktifkan"}
+                </button>
+
+
+                <button
+                    onclick="openDeleteModal('${exam.id}')"
+                    class="
+                        py-2.5 rounded-xl
+                        bg-red-50 dark:bg-red-950/30
+                        hover:bg-red-100 dark:hover:bg-red-950/50
+                        text-red-600 dark:text-red-400
+                        text-sm font-bold
+                        transition
+                    ">
+                    Hapus
+                </button>
+
+            </div>
+
+        `;
+
+        return card;
+
+    }
+
+
+    // =========================================================
+    // SEARCH
+    // =========================================================
+
+    searchInput.addEventListener("input", renderExams);
+
+
+    // =========================================================
+    // FILTER
+    // =========================================================
+
+    document.querySelectorAll(".filterButton").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            currentFilter = button.dataset.filter;
+
+            document.querySelectorAll(".filterButton").forEach(btn => {
+
+                btn.classList.remove(
+                    "bg-indigo-600",
+                    "text-white"
+                );
+
+                btn.classList.add(
+                    "bg-slate-100",
+                    "dark:bg-slate-800",
+                    "text-slate-600",
+                    "dark:text-slate-300"
+                );
+
             });
-        }
 
-        function deleteExam(id) {
-            if(confirm("Yakin ingin menghapus link ujian ini?")) {
-                db.collection('exams').doc(id).delete();
+
+            button.classList.remove(
+                "bg-slate-100",
+                "dark:bg-slate-800",
+                "text-slate-600",
+                "dark:text-slate-300"
+            );
+
+            button.classList.add(
+                "bg-indigo-600",
+                "text-white"
+            );
+
+
+            renderExams();
+
+        });
+
+    });
+
+
+    // =========================================================
+    // STATS
+    // =========================================================
+
+    function updateStats() {
+
+        const total = allExams.length;
+
+        const active = allExams.filter(exam => {
+
+            return exam.isActive !== undefined
+                ? exam.isActive
+                : exam.is_active !== false;
+
+        }).length;
+
+        const inactive = total - active;
+
+
+        animateNumber(
+            document.getElementById("totalExamCount"),
+            total
+        );
+
+        animateNumber(
+            document.getElementById("activeExamCount"),
+            active
+        );
+
+        animateNumber(
+            document.getElementById("inactiveExamCount"),
+            inactive
+        );
+
+    }
+
+
+    function animateNumber(element, target) {
+
+        const duration = 350;
+        const start = Number(element.textContent) || 0;
+        const startTime = performance.now();
+
+
+        function update(currentTime) {
+
+            const progress =
+                Math.min(
+                    (currentTime - startTime) / duration,
+                    1
+                );
+
+            const value =
+                Math.round(
+                    start + (target - start) * progress
+                );
+
+            element.textContent = value;
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
             }
+
         }
 
-        function toggleModal(show) {
-            document.getElementById('examModal').classList.toggle('hidden', !show);
+        requestAnimationFrame(update);
+
+    }
+
+
+    // =========================================================
+    // ADD EXAM
+    // =========================================================
+
+    document.getElementById("examForm").addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        if (!currentUser) return;
+
+
+        const button =
+            document.getElementById("saveExamButton");
+
+        button.disabled = true;
+        button.innerHTML = `
+            <span class="inline-flex items-center gap-2">
+                <span class="w-4 h-4 border-2 border-white/40
+                             border-t-white rounded-full animate-spin"></span>
+                Menyimpan...
+            </span>
+        `;
+
+
+        const mapel =
+            document.getElementById("mapelInput").value.trim();
+
+        const kelas =
+            document.getElementById("kelasInput").value.trim();
+
+        const examUrl =
+            document.getElementById("examUrlInput").value.trim();
+
+        const spreadsheetUrl =
+            document.getElementById("spreadsheetUrlInput").value.trim();
+
+
+        try {
+
+            await db.collection("exams").add({
+
+                createdByUid: currentUser.uid,
+
+                createdByEmail: currentUser.email,
+
+                mapel: mapel,
+
+                kelas: kelas,
+
+                examUrl: examUrl,
+
+                form_url: examUrl,
+
+                link_form: examUrl,
+
+                spreadsheetUrl: spreadsheetUrl,
+
+                token: "",
+
+                isActive: true,
+
+                is_active: true,
+
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+
+            });
+
+
+            closeAddModal();
+
+            document.getElementById("examForm").reset();
+
+            showToast(
+                "Ujian berhasil dibuat.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                "Gagal membuat ujian.",
+                "error"
+            );
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent = "Simpan Ujian";
+
         }
-    </script>
+
+    });
+
+
+    // =========================================================
+    // TOGGLE EXAM
+    // =========================================================
+
+    async function toggleExamStatus(id, newStatus) {
+
+        try {
+
+            await db.collection("exams")
+                .doc(id)
+                .update({
+                    isActive: newStatus,
+                    is_active: newStatus
+                });
+
+
+            showToast(
+                newStatus
+                    ? "Ujian berhasil diaktifkan."
+                    : "Ujian berhasil dinonaktifkan.",
+                "success"
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                "Gagal mengubah status ujian.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DELETE
+    // =========================================================
+
+    function openDeleteModal(id) {
+
+        deleteTargetId = id;
+
+        document
+            .getElementById("deleteModal")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("deleteModal")
+            .classList.add("flex");
+
+    }
+
+
+    function closeDeleteModal() {
+
+        deleteTargetId = null;
+
+        document
+            .getElementById("deleteModal")
+            .classList.add("hidden");
+
+        document
+            .getElementById("deleteModal")
+            .classList.remove("flex");
+
+    }
+
+
+    document
+        .getElementById("confirmDeleteButton")
+        .addEventListener("click", async () => {
+
+            if (!deleteTargetId) return;
+
+
+            const button =
+                document.getElementById("confirmDeleteButton");
+
+            button.disabled = true;
+            button.textContent = "Menghapus...";
+
+
+            try {
+
+                await db
+                    .collection("exams")
+                    .doc(deleteTargetId)
+                    .delete();
+
+
+                closeDeleteModal();
+
+                showToast(
+                    "Ujian berhasil dihapus.",
+                    "success"
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                showToast(
+                    "Gagal menghapus ujian.",
+                    "error"
+                );
+
+            } finally {
+
+                button.disabled = false;
+                button.textContent = "Hapus";
+
+            }
+
+        });
+
+
+    // =========================================================
+    // DETAIL MODAL
+    // =========================================================
+
+    function openDetailModal(id) {
+
+        const exam =
+            allExams.find(item => item.id === id);
+
+        if (!exam) return;
+
+
+        const active =
+            exam.isActive !== undefined
+                ? exam.isActive
+                : exam.is_active !== false;
+
+
+        document.getElementById("detailMapel").textContent =
+            exam.mapel || "-";
+
+        document.getElementById("detailKelas").textContent =
+            exam.kelas || "-";
+
+        document.getElementById("detailToken").textContent =
+            exam.token || "Menunggu Admin";
+
+
+        const badge =
+            document.getElementById("detailBadge");
+
+        badge.textContent =
+            active ? "AKTIF" : "NONAKTIF";
+
+        badge.className = `
+            inline-flex px-3 py-1 rounded-full
+            text-xs font-bold
+            ${active ? "status-active" : "status-inactive"}
+            mb-3
+        `;
+
+
+        const examLink =
+            document.getElementById("detailExamLink");
+
+        const resultLink =
+            document.getElementById("detailResultLink");
+
+
+        const examUrl =
+            getExamUrl(exam);
+
+        if (examUrl) {
+
+            examLink.href = examUrl;
+            examLink.classList.remove(
+                "pointer-events-none",
+                "opacity-40"
+            );
+
+        } else {
+
+            examLink.href = "#";
+            examLink.classList.add(
+                "pointer-events-none",
+                "opacity-40"
+            );
+
+        }
+
+
+        if (exam.spreadsheetUrl) {
+
+            resultLink.href = exam.spreadsheetUrl;
+            resultLink.classList.remove(
+                "pointer-events-none",
+                "opacity-40"
+            );
+
+        } else {
+
+            resultLink.href = "#";
+            resultLink.classList.add(
+                "pointer-events-none",
+                "opacity-40"
+            );
+
+        }
+
+
+        document.getElementById(
+            "detailCopyTokenButton"
+        ).onclick = () => {
+
+            if (exam.token) {
+                copyToken(exam.token);
+            }
+
+        };
+
+
+        document
+            .getElementById("detailModal")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("detailModal")
+            .classList.add("flex");
+
+    }
+
+
+    function closeDetailModal() {
+
+        document
+            .getElementById("detailModal")
+            .classList.add("hidden");
+
+        document
+            .getElementById("detailModal")
+            .classList.remove("flex");
+
+    }
+
+
+    // =========================================================
+    // ADD MODAL
+    // =========================================================
+
+    function openAddModal() {
+
+        document
+            .getElementById("examModal")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("examModal")
+            .classList.add("flex");
+
+        setTimeout(() => {
+
+            document
+                .getElementById("mapelInput")
+                .focus();
+
+        }, 100);
+
+    }
+
+
+    function closeAddModal() {
+
+        document
+            .getElementById("examModal")
+            .classList.add("hidden");
+
+        document
+            .getElementById("examModal")
+            .classList.remove("flex");
+
+    }
+
+
+    // =========================================================
+    // COPY TOKEN
+    // =========================================================
+
+    async function copyToken(token) {
+
+        try {
+
+            await navigator.clipboard.writeText(token);
+
+            showToast(
+                "Token berhasil disalin.",
+                "success"
+            );
+
+        } catch (error) {
+
+            showToast(
+                "Gagal menyalin token.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // DARK MODE
+    // =========================================================
+
+    const darkModeButton =
+        document.getElementById("darkModeButton");
+
+    const darkModeIcon =
+        document.getElementById("darkModeIcon");
+
+
+    function applyDarkMode(isDark) {
+
+        if (isDark) {
+
+            document.documentElement.classList.add("dark");
+
+            darkModeIcon.textContent = "☀️";
+
+        } else {
+
+            document.documentElement.classList.remove("dark");
+
+            darkModeIcon.textContent = "🌙";
+
+        }
+
+    }
+
+
+    const savedTheme =
+        localStorage.getItem("a2s-theme");
+
+    applyDarkMode(
+        savedTheme === "dark"
+    );
+
+
+    darkModeButton.addEventListener("click", () => {
+
+        const isDark =
+            document.documentElement.classList.toggle("dark");
+
+        localStorage.setItem(
+            "a2s-theme",
+            isDark ? "dark" : "light"
+        );
+
+        applyDarkMode(isDark);
+
+    });
+
+
+    // =========================================================
+    // GREETING
+    // =========================================================
+
+    function updateGreeting() {
+
+        const hour = new Date().getHours();
+
+        let greeting = "Selamat malam";
+
+        if (hour >= 4 && hour < 11) {
+            greeting = "Selamat pagi";
+        } else if (hour >= 11 && hour < 15) {
+            greeting = "Selamat siang";
+        } else if (hour >= 15 && hour < 18) {
+            greeting = "Selamat sore";
+        }
+
+        document.getElementById(
+            "greetingText"
+        ).textContent = greeting;
+
+    }
+
+
+    // =========================================================
+    // DATE
+    // =========================================================
+
+    function updateDate() {
+
+        const date =
+            new Date().toLocaleDateString(
+                "id-ID",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+        document.getElementById(
+            "currentDate"
+        ).textContent = date;
+
+    }
+
+
+    // =========================================================
+    // TOAST
+    // =========================================================
+
+    function showToast(message, type = "success") {
+
+        const container =
+            document.getElementById("toastContainer");
+
+
+        const toast =
+            document.createElement("div");
+
+
+        const icon =
+            type === "success"
+                ? "✓"
+                : "⚠";
+
+
+        const color =
+            type === "success"
+                ? `
+                    bg-white dark:bg-slate-900
+                    border-green-200 dark:border-green-900
+                    text-green-700 dark:text-green-300
+                  `
+                : `
+                    bg-white dark:bg-slate-900
+                    border-red-200 dark:border-red-900
+                    text-red-700 dark:text-red-300
+                  `;
+
+
+        toast.className = `
+            toast
+            ${color}
+            border
+            rounded-2xl
+            shadow-xl
+            p-4
+            flex
+            items-center
+            gap-3
+        `;
+
+
+        toast.innerHTML = `
+
+            <div class="
+                w-9 h-9 rounded-xl
+                ${type === "success"
+                    ? "bg-green-100 dark:bg-green-950/40 text-green-600"
+                    : "bg-red-100 dark:bg-red-950/40 text-red-600"}
+                flex items-center justify-center
+                font-black
+            ">
+                ${icon}
+            </div>
+
+            <p class="text-sm font-semibold">
+                ${escapeHTML(message)}
+            </p>
+
+        `;
+
+
+        container.appendChild(toast);
+
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 4200);
+
+    }
+
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    function getExamUrl(exam) {
+
+        return (
+            exam.examUrl ||
+            exam.form_url ||
+            exam.link_form ||
+            ""
+        );
+
+    }
+
+
+    function getSubjectInitials(subject) {
+
+        const words =
+            subject
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean);
+
+
+        if (words.length === 1) {
+
+            return words[0]
+                .substring(0, 2)
+                .toUpperCase();
+
+        }
+
+
+        return words
+            .slice(0, 2)
+            .map(word => word[0])
+            .join("")
+            .toUpperCase();
+
+    }
+
+
+    function getInitials(text) {
+
+        const words =
+            text
+                .split(/[@.\s_-]+/)
+                .filter(Boolean);
+
+
+        if (words.length === 1) {
+
+            return words[0]
+                .substring(0, 2)
+                .toUpperCase();
+
+        }
+
+
+        return (
+            words[0][0] +
+            words[1][0]
+        ).toUpperCase();
+
+    }
+
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    function escapeJS(value) {
+
+        return String(value ?? "")
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, "\\n")
+            .replace(/\r/g, "\\r");
+
+    }
+
+
+    function escapeAttribute(value) {
+
+        return escapeHTML(value);
+
+    }
+
+
+    function getAuthErrorMessage(error) {
+
+        switch (error.code) {
+
+            case "auth/invalid-email":
+                return "Format email tidak valid.";
+
+            case "auth/user-not-found":
+            case "auth/wrong-password":
+            case "auth/invalid-credential":
+                return "Email atau password salah.";
+
+            case "auth/too-many-requests":
+                return "Terlalu banyak percobaan. Silakan coba lagi nanti.";
+
+            case "auth/network-request-failed":
+                return "Koneksi internet bermasalah.";
+
+            default:
+                return "Gagal masuk. Silakan periksa akun Anda.";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CLOSE MODAL WHEN CLICK OUTSIDE
+    // =========================================================
+
+    document
+        .getElementById("examModal")
+        .addEventListener("click", e => {
+
+            if (e.target.id === "examModal") {
+                closeAddModal();
+            }
+
+        });
+
+
+    document
+        .getElementById("detailModal")
+        .addEventListener("click", e => {
+
+            if (e.target.id === "detailModal") {
+                closeDetailModal();
+            }
+
+        });
+
+
+    document
+        .getElementById("deleteModal")
+        .addEventListener("click", e => {
+
+            if (e.target.id === "deleteModal") {
+                closeDeleteModal();
+            }
+
+        });
+
+
+    // =========================================================
+    // ESC TO CLOSE MODALS
+    // =========================================================
+
+    document.addEventListener("keydown", e => {
+
+        if (e.key === "Escape") {
+
+            closeAddModal();
+            closeDetailModal();
+            closeDeleteModal();
+
+        }
+
+    });
+
+</script>
+
 </body>
 </html>
