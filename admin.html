@@ -15,6 +15,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- SheetJS untuk membaca & export .xlsx / .xls langsung di browser -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -126,6 +129,49 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        .blue-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 13px;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all .2s ease;
+            box-shadow: 0 8px 20px -4px rgba(37, 99, 235, .3);
+        }
+
+        .blue-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .blue-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .emerald-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            padding: 6px 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: all .15s ease;
+        }
+
+        .emerald-soft:hover { background: #d1fae5; }
 
         .logout-btn {
             display: inline-flex;
@@ -305,6 +351,12 @@
             border-color: #99f6e4;
         }
 
+        .section-badge.blue {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
         .count-badge { letter-spacing: 0; }
 
         .danger-soft {
@@ -328,6 +380,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 14px;
+            flex-wrap: wrap;
         }
 
         .search-wrap {
@@ -335,6 +388,7 @@
             align-items: center;
             gap: 9px;
             flex: 1;
+            min-width: 200px;
             background: #f8fafc;
             border: 1.5px solid #e2e8f0;
             border-radius: 12px;
@@ -365,6 +419,7 @@
             background: #f8fafc;
             border-radius: 12px;
             padding: 0 13px;
+            min-height: 40px;
             font-size: 12px;
             font-weight: 700;
             color: #334155;
@@ -378,9 +433,32 @@
             border-color: #6366f1;
         }
 
+        .recap-tab {
+            padding: 7px 13px;
+            border-radius: 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            transition: all .15s ease;
+        }
+
+        .recap-tab:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .recap-tab.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, .22);
+        }
+
         .table-wrap {
             overflow: auto;
-            max-height: 440px;
+            max-height: 460px;
             border: 1px solid #e2e8f0;
             border-radius: 14px;
         }
@@ -442,6 +520,7 @@
             display: inline-block;
             width: 44px;
             height: 24px;
+            flex-shrink: 0;
         }
 
         .switch input { display: none; }
@@ -532,7 +611,7 @@
             </div>
 
             <p class="text-sm text-slate-500 mb-7">
-                Kelola ujian, token, akun guru, dan monitoring presensi dalam satu dashboard.
+                Kelola ujian, token, jadwal, akun guru, dan rekap presensi dalam satu dashboard.
             </p>
 
             <div id="loginAlert" class="hidden"></div>
@@ -601,13 +680,17 @@
                 <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                 <span>Overview</span>
             </a>
-            <a href="#targetGuruPanel" class="nav-item">
-                <i data-lucide="users-round" class="w-4 h-4"></i>
-                <span>Master Daftar Guru</span>
-            </a>
             <a href="#tokenPanel" class="nav-item">
                 <i data-lucide="key-round" class="w-4 h-4"></i>
                 <span>Ujian & Token</span>
+            </a>
+            <a href="#schedulePanel" class="nav-item">
+                <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                <span>Sinkronisasi Jadwal</span>
+            </a>
+            <a href="#targetGuruPanel" class="nav-item">
+                <i data-lucide="users-round" class="w-4 h-4"></i>
+                <span>Master Daftar Guru</span>
             </a>
             <a href="#teacherPanel" class="nav-item">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
@@ -616,6 +699,10 @@
             <a href="#attendancePanel" class="nav-item">
                 <i data-lucide="users" class="w-4 h-4"></i>
                 <span>Presensi Real-Time</span>
+            </a>
+            <a href="#attendanceRecapPanel" class="nav-item">
+                <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                <span>Rekap Absensi Siswa</span>
             </a>
             <a href="#importPanel" class="nav-item">
                 <i data-lucide="upload-cloud" class="w-4 h-4"></i>
@@ -657,10 +744,12 @@
         <!-- MOBILE QUICK NAV -->
         <div class="lg:hidden sticky top-[69px] z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 flex gap-2 overflow-x-auto">
             <a href="#overview" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold whitespace-nowrap">Overview</a>
-            <a href="#targetGuruPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Master Guru</a>
             <a href="#tokenPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Token</a>
+            <a href="#schedulePanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Jadwal</a>
+            <a href="#targetGuruPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Master Guru</a>
             <a href="#teacherPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Aktivitas Guru</a>
             <a href="#attendancePanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Presensi Live</a>
+            <a href="#attendanceRecapPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Rekap Absensi</a>
             <a href="#importPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Import Guru</a>
         </div>
 
@@ -721,65 +810,8 @@
             <!-- MAIN GRID -->
             <section class="grid xl:grid-cols-3 gap-6">
 
-                <!-- LEFT COLUMN: MASTER DAFTAR GURU (CSV) + TOKEN -->
+                <!-- LEFT COLUMN: TOKEN + SINKRONISASI JADWAL + MASTER DAFTAR GURU -->
                 <div class="xl:col-span-1 space-y-6">
-
-                    <!-- MASTER DAFTAR GURU VIA IMPORT CSV -->
-                    <div id="targetGuruPanel" class="panel">
-                        <div class="panel-head">
-                            <div>
-                                <h2>Master Daftar Guru</h2>
-                                <p>Import CSV daftar guru untuk deteksi guru belum input di portal Kepsek.</p>
-                            </div>
-                            <span class="section-badge teal">KEPSEK SYNC</span>
-                        </div>
-
-                        <div class="space-y-3.5">
-                            <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="field-label !mb-0">File CSV Daftar Guru</label>
-                                    <button type="button"
-                                            onclick="downloadMasterGuruTemplate()"
-                                            class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
-                                        Template CSV ↗
-                                    </button>
-                                </div>
-
-                                <input type="file"
-                                       id="masterGuruCsvInput"
-                                       accept=".csv"
-                                       class="file-field">
-
-                                <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
-                                    Format kolom CSV: <code>nama,email</code> atau <code>email</code> saja (ekspor langsung dari Excel / Google Sheets).
-                                </p>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <button id="btnImportMasterGuruCsv"
-                                        onclick="handleImportMasterGuruCSV()"
-                                        type="button"
-                                        class="success-btn flex-1">
-                                    <i data-lucide="upload" class="w-4 h-4"></i>
-                                    <span>Import & Sinkronkan</span>
-                                </button>
-
-                                <button id="btnClearMasterGuru"
-                                        onclick="handleClearMasterGuru()"
-                                        type="button"
-                                        title="Kosongkan Master Daftar Guru"
-                                        class="hidden px-3 py-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-
-                            <div id="previewGuruSync"
-                                 class="p-3 rounded-xl bg-teal-50/70 border border-teal-200/80 text-xs text-teal-900 font-semibold flex items-center justify-between">
-                                <span>Daftar guru belum diatur</span>
-                                <span class="font-mono font-extrabold text-teal-700">-</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- TOKEN PANEL -->
                     <div id="tokenPanel" class="panel">
@@ -852,6 +884,142 @@
                         </div>
                     </div>
 
+                    <!-- SINKRONISASI JADWAL EXCEL (.XLSX / .XLS) -->
+                    <div id="schedulePanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Sinkronisasi Jadwal</h2>
+                                <p>Import Excel jadwal PAS untuk tempel jam ujian & pengawas.</p>
+                            </div>
+                            <span class="section-badge blue">EXCEL SYNC</span>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="field-label !mb-0">File Excel Jadwal (.xlsx / .xls)</label>
+                                    <button type="button"
+                                            id="btnViewScheduleModal"
+                                            onclick="openScheduleModal()"
+                                            class="hidden text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                                        Lihat Jadwal ↗
+                                    </button>
+                                </div>
+
+                                <input type="file"
+                                       id="scheduleExcelInput"
+                                       accept=".xlsx,.xls"
+                                       class="file-field">
+
+                                <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                                    Mendukung format <code>jadwal PAS 2026 2027 ganjil revisi.xlsx</code> langsung tanpa ubah kolom.
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button id="btnImportSchedule"
+                                        onclick="handleImportScheduleExcel()"
+                                        type="button"
+                                        class="blue-btn flex-1">
+                                    <i data-lucide="calendar-check-2" class="w-4 h-4"></i>
+                                    <span>Import & Sinkronkan</span>
+                                </button>
+
+                                <button id="btnResyncSchedule"
+                                        onclick="handleResyncExistingExams()"
+                                        type="button"
+                                        title="Sinkronkan Ulang dengan Setoran Guru Terbaru"
+                                        class="hidden px-3 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 transition">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+
+                                <button id="btnClearSchedule"
+                                        onclick="handleClearSchedule()"
+                                        type="button"
+                                        title="Hapus Data Jadwal"
+                                        class="hidden px-3 py-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <!-- AUTO-SCHEDULER SWITCH -->
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-3">
+                                <div class="pr-2">
+                                    <p class="text-xs font-bold text-slate-700">Auto-Aktif Sesuai Jam</p>
+                                    <p class="text-[10.5px] text-slate-400">Otomatis buka/tutup ujian terjadwal saat dashboard aktif</p>
+                                </div>
+
+                                <label class="switch">
+                                    <input type="checkbox" id="autoScheduleToggle" onchange="handleToggleAutoSchedule(this.checked)">
+                                    <span></span>
+                                </label>
+                            </div>
+
+                            <div id="previewScheduleSync"
+                                 class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-xs text-blue-950 font-semibold flex items-center justify-between gap-2">
+                                <span>Jadwal ujian belum diimport</span>
+                                <span class="font-mono font-extrabold text-blue-700">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MASTER DAFTAR GURU VIA IMPORT CSV -->
+                    <div id="targetGuruPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Master Daftar Guru</h2>
+                                <p>Import CSV daftar guru untuk deteksi guru belum input di portal Kepsek.</p>
+                            </div>
+                            <span class="section-badge teal">KEPSEK SYNC</span>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="field-label !mb-0">File CSV Daftar Guru</label>
+                                    <button type="button"
+                                            onclick="downloadMasterGuruTemplate()"
+                                            class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                        Template CSV ↗
+                                    </button>
+                                </div>
+
+                                <input type="file"
+                                       id="masterGuruCsvInput"
+                                       accept=".csv"
+                                       class="file-field">
+
+                                <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                                    Format kolom CSV: <code>nama,email</code> atau <code>email</code> saja (ekspor langsung dari Excel / Google Sheets).
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button id="btnImportMasterGuruCsv"
+                                        onclick="handleImportMasterGuruCSV()"
+                                        type="button"
+                                        class="success-btn flex-1">
+                                    <i data-lucide="upload" class="w-4 h-4"></i>
+                                    <span>Import & Sinkronkan</span>
+                                </button>
+
+                                <button id="btnClearMasterGuru"
+                                        onclick="handleClearMasterGuru()"
+                                        type="button"
+                                        title="Kosongkan Master Daftar Guru"
+                                        class="hidden px-3 py-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div id="previewGuruSync"
+                                 class="p-3 rounded-xl bg-teal-50/70 border border-teal-200/80 text-xs text-teal-900 font-semibold flex items-center justify-between">
+                                <span>Daftar guru belum diatur</span>
+                                <span class="font-mono font-extrabold text-teal-700">-</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- RIGHT SIDE -->
@@ -862,7 +1030,7 @@
                         <div class="panel-head">
                             <div>
                                 <h2>Aktivitas Ujian Guru</h2>
-                                <p>Pantau ujian yang dibuat dan token yang terpasang.</p>
+                                <p>Diurutkan berdasarkan waktu pengumpulan soal & sinkron jadwal.</p>
                             </div>
                             <span id="teacherExamCount" class="count-badge">0 Ujian</span>
                         </div>
@@ -870,22 +1038,31 @@
                         <div class="toolbar">
                             <div class="search-wrap">
                                 <i data-lucide="search" class="w-4 h-4"></i>
-                                <input id="examSearch" placeholder="Cari guru, mapel, kelas, token...">
+                                <input id="examSearch" placeholder="Cari guru, mapel, kelas, token, hari...">
                             </div>
+
+                            <select id="examSort" class="filter-select" title="Urutkan waktu pengumpulan">
+                                <option value="newest">Waktu: Terbaru</option>
+                                <option value="oldest">Waktu: Terlama</option>
+                                <option value="schedule">Urut: Jadwal Ujian</option>
+                            </select>
 
                             <select id="examFilter" class="filter-select">
                                 <option value="all">Semua Status</option>
+                                <option value="today">Jadwal Hari Ini</option>
                                 <option value="active">Aktif</option>
                                 <option value="inactive">Mati</option>
+                                <option value="unscheduled">Belum Terjadwal</option>
                             </select>
                         </div>
 
                         <div class="table-wrap">
-                            <table class="modern-table">
+                            <table class="modern-table min-w-[760px]">
                                 <thead>
                                     <tr>
+                                        <th>Waktu Kumpul</th>
                                         <th>Guru</th>
-                                        <th>Mapel / Kelas</th>
+                                        <th>Mapel / Kelas & Jadwal</th>
                                         <th>Token</th>
                                         <th>Link</th>
                                         <th>Status</th>
@@ -893,7 +1070,7 @@
                                 </thead>
                                 <tbody id="teacherActivityBody">
                                     <tr>
-                                        <td colspan="5" class="empty-state">
+                                        <td colspan="6" class="empty-state">
                                             Belum ada aktivitas ujian dari guru...
                                         </td>
                                     </tr>
@@ -902,7 +1079,7 @@
                         </div>
                     </section>
 
-                    <!-- PRESENSI -->
+                    <!-- PRESENSI REAL-TIME -->
                     <section id="attendancePanel" class="panel">
                         <div class="panel-head">
                             <div>
@@ -958,6 +1135,123 @@
                         </div>
                     </section>
 
+                    <!-- REKAP ABSENSI SISWA -->
+                    <section id="attendanceRecapPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Rekap Absensi Siswa</h2>
+                                <p>Ringkasan kehadiran per ruang/kelas, per mapel, dan export Excel berita acara.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap justify-end">
+                                <button onclick="toggleMasterStudentBox()" type="button" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition">
+                                    + Data Siswa
+                                </button>
+                                <button onclick="handleExportRecapExcel()" type="button" class="emerald-soft">
+                                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                    Export Excel (.xlsx)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- OPTIONAL MASTER DATA SISWA UPLOADER -->
+                        <div id="masterStudentBox" class="hidden mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <div>
+                                    <p class="text-xs font-extrabold text-slate-800">Master Data Siswa (Opsional — untuk hitung Belum Hadir)</p>
+                                    <p class="text-[11px] text-slate-500">Upload file Excel/CSV berisi kolom: <code>nis, nama, kelas, ruang</code>.</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="downloadMasterStudentTemplate()" class="text-[11px] font-bold text-indigo-600 hover:underline">
+                                        Template CSV ↗
+                                    </button>
+                                    <button id="btnClearMasterStudents" type="button" onclick="handleClearMasterStudents()" class="hidden text-[11px] font-bold text-red-600 hover:underline">
+                                        Hapus Master
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid sm:grid-cols-[1fr_auto] gap-2.5 items-center">
+                                <input type="file" id="masterStudentFileInput" accept=".xlsx,.xls,.csv" class="file-field !py-2">
+                                <button id="btnImportMasterStudents" type="button" onclick="handleImportMasterStudents()" class="primary-btn !py-2.5 !px-4 whitespace-nowrap">
+                                    Simpan Data Siswa
+                                </button>
+                            </div>
+
+                            <p id="masterStudentStatusText" class="text-[11px] font-semibold text-slate-500">
+                                Belum ada master data siswa (rekap tetap berjalan otomatis dari presensi masuk).
+                            </p>
+                        </div>
+
+                        <!-- MINI SUMMARY METRICS -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                            <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600">Total Hadir</div>
+                                <div id="recapStatHadir" class="text-lg font-extrabold text-slate-900 mt-0.5 font-mono">0</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
+                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600">App Resmi</div>
+                                <div id="recapStatOfficial" class="text-lg font-extrabold text-emerald-800 mt-0.5 font-mono">0</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-100">
+                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-rose-600">Browser / PC</div>
+                                <div id="recapStatBrowser" class="text-lg font-extrabold text-rose-800 mt-0.5 font-mono">0</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-100">
+                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">Belum Hadir</div>
+                                <div id="recapStatAbsent" class="text-lg font-extrabold text-amber-900 mt-0.5 font-mono">-</div>
+                            </div>
+                        </div>
+
+                        <!-- MODE TABS & FILTERS -->
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <button type="button" id="tabRecapRoom" onclick="setRecapViewMode('room')" class="recap-tab active">
+                                    Rekap per Ruang
+                                </button>
+                                <button type="button" id="tabRecapExam" onclick="setRecapViewMode('exam')" class="recap-tab">
+                                    Rekap per Mapel / Token
+                                </button>
+                                <button type="button" id="tabRecapAbsent" onclick="setRecapViewMode('absent')" class="recap-tab">
+                                    Daftar Belum Hadir
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <select id="recapDateFilter" onchange="renderAttendanceRecap()" class="filter-select !min-h-[36px] text-xs">
+                                    <option value="all">Semua Tanggal</option>
+                                </select>
+
+                                <select id="recapTokenFilter" onchange="renderAttendanceRecap()" class="filter-select !min-h-[36px] text-xs max-w-[220px]">
+                                    <option value="all">Semua Ujian / Token</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="modern-table min-w-[700px]">
+                                <thead id="recapTableHead">
+                                    <tr>
+                                        <th>Ruang / Kelas</th>
+                                        <th>Target Siswa</th>
+                                        <th>Hadir</th>
+                                        <th>Belum Hadir</th>
+                                        <th>App Resmi</th>
+                                        <th>Browser/PC</th>
+                                        <th>Kehadiran</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recapTableBody">
+                                    <tr>
+                                        <td colspan="7" class="empty-state">
+                                            Menunggu data presensi siswa...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
                 </div>
 
             </section>
@@ -999,6 +1293,25 @@
     </main>
 </div>
 
+<!-- MODAL PREVIEW JADWAL & PENGAWAS -->
+<div id="scheduleModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-4 bg-slate-50">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-widest text-blue-600">Sinkronisasi Jadwal PAS</p>
+                <h3 id="scheduleModalTitle" class="text-lg font-extrabold text-slate-900">Daftar Sesi Ujian & Pengawas</h3>
+            </div>
+            <button type="button" onclick="closeScheduleModal()" class="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div id="scheduleModalBody" class="p-6 overflow-y-auto space-y-4 text-xs">
+            <p class="text-slate-400 italic text-center py-8">Memuat jadwal...</p>
+        </div>
+    </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
 
@@ -1030,6 +1343,13 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 let selectedDocId = null;
 let currentMasterTeacherList = [];
+let currentMasterStudentList = [];
+let latestExamRecords = [];
+let latestAttendanceRecords = [];
+let currentScheduleData = null;
+let autoScheduleInterval = null;
+let isSyncingExamsBatch = false;
+let currentRecapViewMode = "room";
 
 function showToast(message, type = "info") {
     const toast = document.getElementById("toast");
@@ -1050,6 +1370,1355 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+function toLocalISODate(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return "";
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function formatISODateLabel(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "-";
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("id-ID", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
+}
+
+/* =========================================================
+   PARSER & SINKRONISASI JADWAL EXCEL (.XLSX / .XLS)
+========================================================= */
+const INDONESIAN_MONTHS = {
+    januari: "01",
+    februari: "02",
+    pebruari: "02",
+    maret: "03",
+    april: "04",
+    mei: "05",
+    juni: "06",
+    juli: "07",
+    agustus: "08",
+    september: "09",
+    oktober: "10",
+    november: "11",
+    nopember: "11",
+    desember: "12"
+};
+
+const SHORT_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+function parseIndonesianScheduleDate(rawText) {
+    const text = String(rawText || "").trim();
+    if (!text) return null;
+
+    const match = text.match(/(?:([A-Za-z']+),\s*)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+    if (!match) return null;
+
+    const dayName = (match[1] || "").trim();
+    const dayNum = match[2].padStart(2, "0");
+    const monthName = match[3].toLowerCase();
+    const year = match[4];
+    const monthNum = INDONESIAN_MONTHS[monthName];
+
+    if (!monthNum) return null;
+
+    const monthShort = SHORT_MONTH_NAMES[parseInt(monthNum, 10) - 1] || match[3];
+    const shortLabel = `${dayName ? dayName + ", " : ""}${parseInt(dayNum, 10)} ${monthShort}`;
+
+    return {
+        iso: `${year}-${monthNum}-${dayNum}`,
+        day: dayName,
+        raw: text,
+        shortLabel
+    };
+}
+
+function parseScheduleTimeRange(rawTime) {
+    const text = String(rawTime || "").trim();
+    const match = text.match(/(\d{1,2})[.:](\d{2})\s*[-–s.d]+\s*(\d{1,2})[.:](\d{2})/i);
+    if (!match) return null;
+
+    const start = `${match[1].padStart(2, "0")}:${match[2]}`;
+    const end = `${match[3].padStart(2, "0")}:${match[4]}`;
+    return {
+        start,
+        end,
+        label: `${start}–${end}`
+    };
+}
+
+function extractGradeLevels(text) {
+    const t = String(text || "").toUpperCase();
+    const grades = new Set();
+    if (/(?:^|[^A-Z0-9])XI(?:\d|[A-Z]*\b|\b)|(?:^|[^0-9])11(?:[^0-9]|$)/.test(t)) {
+        grades.add("XI");
+    }
+    if (/(?:^|[^A-Z0-9])X(?!I)(?:\d|[A-Z]*\b|\b)|(?:^|[^0-9])10(?:[^0-9]|$)/.test(t)) {
+        grades.add("X");
+    }
+    return Array.from(grades);
+}
+
+const SUBJECT_ALIAS_GROUPS = [
+    ["pai", "pak", "pendidikan agama", "agama islam", "agama kristen", "pabp"],
+    ["sejarah", "sejarah indonesia"],
+    ["kka", "koding", "kecerdasan artifisial", "koding dan kecerdasan artifisial"],
+    ["matematika", "mtk"],
+    ["pendidikan pancasila", "pancasila", "ppkn", "pkn"],
+    ["bahasa indonesia", "b. indonesia", "bindo", "b indo"],
+    ["bahasa inggris", "b. inggris", "bing", "b inggris"],
+    ["informatika", "tik"],
+    ["kik", "kreativitas", "inovasi", "kewirausahaan", "pkwu", "produk kreatif"],
+    ["projek ipas", "ipas", "ipa", "ips"],
+    ["mapel pilihan", "mata pelajaran pilihan", "pilihan"],
+    ["dasar kejuruan", "dasar-dasar", "dasar program keahlian", "ddk", "dpk"],
+    ["konsentrasi keahlian", "kk", "produktif", "kejuruan xi"],
+    ["penjaskes", "pjok", "penjas", "pendidikan jasmani", "olahraga"]
+];
+
+function normalizeSubjectTokens(rawSubject) {
+    const clean = String(rawSubject || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s,/-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (!clean) return [];
+
+    const parts = clean.split(/[,/]+/).map(s => s.trim()).filter(Boolean);
+    const expanded = new Set(parts);
+    expanded.add(clean);
+
+    for (const group of SUBJECT_ALIAS_GROUPS) {
+        const matched = group.some(alias =>
+            clean === alias ||
+            clean.includes(alias) ||
+            parts.some(p => p === alias || p.includes(alias))
+        );
+        if (matched) {
+            group.forEach(alias => expanded.add(alias));
+        }
+    }
+
+    return Array.from(expanded);
+}
+
+function parseScheduleWorkbook(arrayBuffer) {
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[firstSheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+    let headerRowIdx = -1;
+    let colDate = 1;
+    let colTime = 2;
+    let colSubject = 3;
+    let colClass = 4;
+    let colRoomStart = 5;
+
+    for (let r = 0; r < Math.min(rows.length, 15); r++) {
+        const row = rows[r].map(c => String(c || "").trim().toLowerCase());
+        const foundDate = row.findIndex(c => c.includes("hari") || c.includes("tanggal"));
+        const foundSubj = row.findIndex(c => c.includes("mata pelajaran") || c === "mapel");
+        if (foundDate !== -1 && foundSubj !== -1) {
+            headerRowIdx = r;
+            colDate = foundDate;
+            colSubject = foundSubj;
+            const foundTime = row.findIndex(c => c.includes("waktu") || c.includes("jam"));
+            const foundClass = row.findIndex(c => c.includes("kelas"));
+            const foundRoom = row.findIndex(c => c.includes("ruang"));
+            if (foundTime !== -1) colTime = foundTime;
+            if (foundClass !== -1) colClass = foundClass;
+            if (foundRoom !== -1) colRoomStart = foundRoom;
+            break;
+        }
+    }
+
+    if (headerRowIdx === -1) {
+        throw new Error("Header tabel jadwal (Hari/Tanggal & Mata Pelajaran) tidak ditemukan.");
+    }
+
+    const roomNumRow = rows[headerRowIdx + 1] || [];
+    const roomClassRow = rows[headerRowIdx + 2] || [];
+    const roomsMeta = [];
+
+    for (let c = colRoomStart; c < roomNumRow.length; c++) {
+        const rNum = parseInt(String(roomNumRow[c] || "").trim(), 10);
+        const rClass = String(roomClassRow[c] || "").trim();
+        if (!isNaN(rNum) && rClass) {
+            roomsMeta.push({ colIndex: c, ruang: rNum, kelas: rClass });
+        }
+    }
+
+    const teacherCodeMap = {};
+    let kodeGuruStartRow = -1;
+    for (let r = headerRowIdx + 3; r < rows.length; r++) {
+        const joined = rows[r].map(c => String(c || "").toUpperCase()).join(" ");
+        if (joined.includes("KODE GURU")) {
+            kodeGuruStartRow = r + 1;
+            break;
+        }
+    }
+
+    if (kodeGuruStartRow !== -1) {
+        for (let r = kodeGuruStartRow; r < rows.length; r++) {
+            const row = rows[r];
+            for (let c = 0; c < row.length - 1; c++) {
+                const rawCode = String(row[c] || "").trim();
+                const rawName = String(row[c + 1] || "").trim();
+                if (/^\d{1,3}$/.test(rawCode) && rawName && isNaN(Number(rawName))) {
+                    teacherCodeMap[parseInt(rawCode, 10)] = rawName;
+                }
+            }
+        }
+    }
+
+    const endScheduleRow = kodeGuruStartRow !== -1 ? kodeGuruStartRow - 1 : rows.length;
+    let lastDateObj = null;
+    let lastTimeObj = null;
+    const slots = [];
+
+    for (let r = headerRowIdx + 3; r < endScheduleRow; r++) {
+        const row = rows[r];
+        const rawDate = String(row[colDate] || "").trim();
+        const rawTime = String(row[colTime] || "").trim();
+        const rawSubject = String(row[colSubject] || "").trim();
+        const rawClass = String(row[colClass] || "").trim();
+
+        if (rawDate) {
+            const parsedDate = parseIndonesianScheduleDate(rawDate);
+            if (parsedDate) lastDateObj = parsedDate;
+        }
+        if (rawTime) {
+            const parsedTime = parseScheduleTimeRange(rawTime);
+            if (parsedTime) lastTimeObj = parsedTime;
+        }
+
+        if (!rawSubject || !rawClass || !lastDateObj || !lastTimeObj) {
+            continue;
+        }
+
+        const gradeLevels = extractGradeLevels(rawClass);
+        const pengawasRuang = [];
+
+        roomsMeta.forEach(rm => {
+            const codeVal = String(row[rm.colIndex] || "").trim();
+            if (/^\d{1,3}$/.test(codeVal)) {
+                const codeNum = parseInt(codeVal, 10);
+                pengawasRuang.push({
+                    ruang: rm.ruang,
+                    kelas: rm.kelas,
+                    kode: codeNum,
+                    nama: teacherCodeMap[codeNum] || `Guru #${codeNum}`
+                });
+            }
+        });
+
+        slots.push({
+            id: `${lastDateObj.iso}_${lastTimeObj.start.replace(":", "")}_${rawSubject.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12)}_${gradeLevels.join("")}`,
+            date: lastDateObj.iso,
+            day: lastDateObj.day,
+            dateRaw: lastDateObj.raw,
+            shortDateLabel: lastDateObj.shortLabel,
+            start: lastTimeObj.start,
+            end: lastTimeObj.end,
+            timeLabel: lastTimeObj.label,
+            mapel: rawSubject,
+            kelas: rawClass,
+            grades: gradeLevels,
+            pengawas: pengawasRuang
+        });
+    }
+
+    if (slots.length === 0) {
+        throw new Error("Tidak ada baris jadwal ujian yang valid ditemukan di file Excel.");
+    }
+
+    return {
+        title: String(rows[0]?.[0] || "Jadwal Ujian PAS").trim(),
+        slots,
+        rooms: roomsMeta.map(({ ruang, kelas }) => ({ ruang, kelas })),
+        teachersCount: Object.keys(teacherCodeMap).length
+    };
+}
+
+function findMatchingSlotForExam(exam, slots) {
+    if (!Array.isArray(slots) || slots.length === 0) return null;
+
+    const examGrades = extractGradeLevels(`${exam.kelas || ""} ${exam.displayName || ""}`);
+    const examSubjectTokens = normalizeSubjectTokens(exam.displayName || "");
+
+    if (examSubjectTokens.length === 0) return null;
+
+    let bestSlot = null;
+    let bestScore = 0;
+
+    for (const slot of slots) {
+        const slotTokens = normalizeSubjectTokens(slot.mapel);
+        const subjectMatch = examSubjectTokens.some(t => slotTokens.includes(t));
+        if (!subjectMatch) continue;
+
+        let score = 10;
+
+        if (examGrades.length > 0 && Array.isArray(slot.grades) && slot.grades.length > 0) {
+            const gradeOverlap = examGrades.some(g => slot.grades.includes(g));
+            if (!gradeOverlap) {
+                continue;
+            }
+            score += 10;
+            if (slot.grades.length === examGrades.length) {
+                score += 2;
+            }
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestSlot = slot;
+        }
+    }
+
+    return bestSlot;
+}
+
+async function syncExamsWithSchedule(slots, versionTag = Date.now()) {
+    if (!Array.isArray(slots) || slots.length === 0) return 0;
+    if (isSyncingExamsBatch) return 0;
+
+    isSyncingExamsBatch = true;
+    let matchedCount = 0;
+
+    try {
+        const snapshot = await db.collection("exams").get();
+        if (snapshot.empty) return 0;
+
+        const batch = db.batch();
+        let hasUpdates = false;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const examObj = {
+                displayName: data.nama_ujian || data.mapel || "",
+                kelas: data.kelas || ""
+            };
+
+            const matched = findMatchingSlotForExam(examObj, slots);
+            if (matched) {
+                matchedCount++;
+                const label = `${matched.shortDateLabel} • ${matched.timeLabel}`;
+                if (
+                    data.schedule_date !== matched.date ||
+                    data.schedule_start !== matched.start ||
+                    data.schedule_end !== matched.end ||
+                    data.schedule_synced_version !== versionTag
+                ) {
+                    hasUpdates = true;
+                    batch.update(doc.ref, {
+                        schedule_date: matched.date,
+                        schedule_day: matched.day,
+                        schedule_start: matched.start,
+                        schedule_end: matched.end,
+                        schedule_label: label,
+                        schedule_mapel: matched.mapel,
+                        schedule_synced_version: versionTag
+                    });
+                }
+            } else if (data.schedule_date) {
+                hasUpdates = true;
+                batch.update(doc.ref, {
+                    schedule_date: "",
+                    schedule_day: "",
+                    schedule_start: "",
+                    schedule_end: "",
+                    schedule_label: "",
+                    schedule_mapel: "",
+                    schedule_synced_version: versionTag
+                });
+            }
+        });
+
+        if (hasUpdates) {
+            await batch.commit();
+        }
+    } finally {
+        isSyncingExamsBatch = false;
+    }
+
+    return matchedCount;
+}
+
+window.handleImportScheduleExcel = function() {
+    const input = document.getElementById("scheduleExcelInput");
+    const btn = document.getElementById("btnImportSchedule");
+
+    if (!input.files || !input.files.length) {
+        showToast("Pilih file Excel jadwal (.xlsx / .xls) terlebih dahulu.", "error");
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(event) {
+        btn.disabled = true;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `<span>Memproses jadwal...</span>`;
+
+        try {
+            const parsed = parseScheduleWorkbook(event.target.result);
+            const versionTag = Date.now();
+            const existingAutoFlag = Boolean(currentScheduleData?.auto_schedule);
+
+            await db.collection("settings").doc("schedule").set(
+                {
+                    title: parsed.title,
+                    slots: parsed.slots,
+                    rooms: parsed.rooms,
+                    teachers_count: parsed.teachersCount,
+                    auto_schedule: existingAutoFlag,
+                    version_tag: versionTag,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_by: auth.currentUser ? auth.currentUser.email : "admin"
+                },
+                { merge: true }
+            );
+
+            const matched = await syncExamsWithSchedule(parsed.slots, versionTag);
+            input.value = "";
+            showToast(`Berhasil import ${parsed.slots.length} sesi jadwal & cocokkan ${matched} ujian guru!`, "success");
+        } catch (error) {
+            console.error(error);
+            showToast("Gagal import jadwal: " + error.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+};
+
+window.handleResyncExistingExams = async function() {
+    if (!currentScheduleData || !Array.isArray(currentScheduleData.slots) || !currentScheduleData.slots.length) {
+        showToast("Belum ada data jadwal untuk disinkronkan.", "error");
+        return;
+    }
+
+    try {
+        showToast("Menyinkronkan ulang jadwal ke ujian guru...", "info");
+        const matched = await syncExamsWithSchedule(currentScheduleData.slots, Date.now());
+        showToast(`Sinkronisasi selesai (${matched} ujian cocok dengan jadwal).`, "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal sinkronisasi ulang: " + error.message, "error");
+    }
+};
+
+window.handleClearSchedule = async function() {
+    if (!confirm("Hapus data jadwal ujian dari sistem?\n\nLabel jadwal pada aktivitas ujian guru juga akan dibersihkan.")) {
+        return;
+    }
+
+    try {
+        await db.collection("settings").doc("schedule").set(
+            {
+                title: "",
+                slots: [],
+                rooms: [],
+                auto_schedule: false,
+                version_tag: Date.now(),
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+
+        const snapshot = await db.collection("exams").get();
+        if (!snapshot.empty) {
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                if (doc.data().schedule_date) {
+                    batch.update(doc.ref, {
+                        schedule_date: "",
+                        schedule_day: "",
+                        schedule_start: "",
+                        schedule_end: "",
+                        schedule_label: "",
+                        schedule_mapel: ""
+                    });
+                }
+            });
+            await batch.commit();
+        }
+
+        showToast("Data jadwal ujian berhasil dihapus.", "info");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal menghapus jadwal: " + error.message, "error");
+    }
+};
+
+window.handleToggleAutoSchedule = async function(enabled) {
+    if (enabled && (!currentScheduleData || !Array.isArray(currentScheduleData.slots) || !currentScheduleData.slots.length)) {
+        document.getElementById("autoScheduleToggle").checked = false;
+        showToast("Import file Excel jadwal terlebih dahulu sebelum mengaktifkan mode otomatis.", "error");
+        return;
+    }
+
+    try {
+        await db.collection("settings").doc("schedule").set(
+            {
+                auto_schedule: enabled,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+
+        if (enabled) {
+            runAutoScheduleCheck();
+            showToast("Mode Auto-Aktif sesuai jam jadwal dinyalakan.", "success");
+        } else {
+            showToast("Mode Auto-Aktif dimatikan (kontrol manual).", "info");
+        }
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal mengubah pengaturan auto-jadwal: " + error.message, "error");
+    }
+};
+
+function getNowLocalDateAndMinutes() {
+    const now = new Date();
+    const isoDate = toLocalISODate(now);
+    const totalMinutes = now.getHours() * 60 + now.getMinutes();
+    return { isoDate, totalMinutes };
+}
+
+function timeStringToMinutes(hhmm) {
+    const parts = String(hhmm || "").split(":");
+    if (parts.length < 2) return null;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+}
+
+async function runAutoScheduleCheck() {
+    if (!currentScheduleData?.auto_schedule) return;
+    if (!latestExamRecords.length) return;
+
+    const { isoDate, totalMinutes } = getNowLocalDateAndMinutes();
+    const batch = db.batch();
+    let changes = 0;
+
+    latestExamRecords.forEach(item => {
+        if (!item.scheduleDate || !item.scheduleStart || !item.scheduleEnd) return;
+
+        const startMin = timeStringToMinutes(item.scheduleStart);
+        const endMin = timeStringToMinutes(item.scheduleEnd);
+        if (startMin === null || endMin === null) return;
+
+        const shouldBeActive = item.scheduleDate === isoDate && totalMinutes >= startMin && totalMinutes <= endMin;
+
+        if (Boolean(item.isActive) !== shouldBeActive) {
+            const ref = db.collection("exams").doc(item.docId);
+            batch.update(ref, {
+                is_active: shouldBeActive,
+                isActive: shouldBeActive
+            });
+            changes++;
+        }
+    });
+
+    if (changes > 0) {
+        try {
+            await batch.commit();
+            showToast(`Auto-Jadwal: ${changes} ujian disesuaikan dengan jam saat ini.`, "info");
+        } catch (err) {
+            console.error("Auto-schedule commit error:", err);
+        }
+    }
+}
+
+function updateSchedulePreviewUI() {
+    const preview = document.getElementById("previewScheduleSync");
+    const viewBtn = document.getElementById("btnViewScheduleModal");
+    const resyncBtn = document.getElementById("btnResyncSchedule");
+    const clearBtn = document.getElementById("btnClearSchedule");
+    const toggle = document.getElementById("autoScheduleToggle");
+
+    const slots = Array.isArray(currentScheduleData?.slots) ? currentScheduleData.slots : [];
+    const hasSchedule = slots.length > 0;
+
+    if (viewBtn) viewBtn.classList.toggle("hidden", !hasSchedule);
+    if (resyncBtn) resyncBtn.classList.toggle("hidden", !hasSchedule);
+    if (clearBtn) clearBtn.classList.toggle("hidden", !hasSchedule);
+    if (toggle) toggle.checked = Boolean(currentScheduleData?.auto_schedule);
+
+    if (!preview) return;
+
+    if (hasSchedule) {
+        const matchedExams = latestExamRecords.filter(e => Boolean(e.scheduleDate)).length;
+        const firstDate = slots[0]?.shortDateLabel || "";
+        const lastDate = slots[slots.length - 1]?.shortDateLabel || "";
+        preview.innerHTML = `
+            <div>
+                <div>${slots.length} Sesi (${firstDate} – ${lastDate})</div>
+                <div class="text-[10.5px] font-medium text-blue-700/80 mt-0.5">${matchedExams} dari ${latestExamRecords.length} ujian guru cocok</div>
+            </div>
+            <span class="font-mono font-extrabold text-blue-700">AKTIF</span>
+        `;
+    } else {
+        preview.innerHTML = `
+            <span>Jadwal ujian belum diimport</span>
+            <span class="font-mono font-extrabold text-slate-400">-</span>
+        `;
+    }
+}
+
+function listenScheduleSettings() {
+    db.collection("settings").doc("schedule").onSnapshot(doc => {
+        if (doc.exists) {
+            currentScheduleData = doc.data();
+        } else {
+            currentScheduleData = null;
+        }
+        updateSchedulePreviewUI();
+        refreshRecapFilterOptions();
+        renderAttendanceRecap();
+        if (currentScheduleData?.auto_schedule) {
+            runAutoScheduleCheck();
+        }
+    }, error => {
+        console.error("Error listening schedule settings:", error);
+    });
+}
+
+window.openScheduleModal = function() {
+    const modal = document.getElementById("scheduleModal");
+    const titleEl = document.getElementById("scheduleModalTitle");
+    const bodyEl = document.getElementById("scheduleModalBody");
+
+    if (!modal || !currentScheduleData?.slots?.length) return;
+
+    titleEl.textContent = currentScheduleData.title || "Daftar Sesi Ujian & Pengawas";
+
+    const grouped = new Map();
+    currentScheduleData.slots.forEach(slot => {
+        const key = slot.dateRaw || slot.date;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(slot);
+    });
+
+    let html = "";
+    grouped.forEach((daySlots, dateHeading) => {
+        html += `
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="bg-slate-100 px-4 py-2.5 font-extrabold text-slate-800 flex items-center justify-between">
+                    <span>${escapeHTML(dateHeading)}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${daySlots.length} Sesi</span>
+                </div>
+                <div class="divide-y divide-slate-100">
+        `;
+
+        daySlots.forEach(s => {
+            const pengawasBadges = (s.pengawas || [])
+                .map(p => `<span class="inline-block px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-[10.5px] text-slate-600"><b>R.${p.ruang}</b> (${escapeHTML(p.kelas)}): ${escapeHTML(p.nama)}</span>`)
+                .join(" ");
+
+            html += `
+                <div class="p-4 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-lg">${escapeHTML(s.timeLabel)}</span>
+                            <span class="font-extrabold text-slate-900 text-sm">${escapeHTML(s.mapel)}</span>
+                        </div>
+                        <span class="font-mono font-bold text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Kelas ${escapeHTML(s.kelas)}</span>
+                    </div>
+                    ${pengawasBadges ? `<div class="flex flex-wrap gap-1.5 pt-1">${pengawasBadges}</div>` : ""}
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+    });
+
+    bodyEl.innerHTML = html;
+    modal.classList.remove("hidden");
+    if (window.lucide) lucide.createIcons();
+};
+
+window.closeScheduleModal = function() {
+    document.getElementById("scheduleModal")?.classList.add("hidden");
+};
+
+/* =========================================================
+   REKAP ABSENSI SISWA & MASTER DATA SISWA
+========================================================= */
+window.toggleMasterStudentBox = function() {
+    const box = document.getElementById("masterStudentBox");
+    if (!box) return;
+    box.classList.toggle("hidden");
+};
+
+window.downloadMasterStudentTemplate = function() {
+    const csv = "nis,nama,kelas,ruang\n24001,Ahmad Fauzi,X1 TEI,1\n24002,Siti Nurhaliza,X1 TEI,1\n24003,Budi Santoso,XI1 TKJ,13\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "template_master_siswa_a2s.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+function parseMasterStudentsSheet(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) return [];
+
+    let startIdx = 0;
+    let colNis = 0;
+    let colNama = 1;
+    let colKelas = 2;
+    let colRuang = 3;
+
+    const firstRow = rows[0].map(c => String(c || "").trim().toLowerCase());
+    if (firstRow.some(c => c.includes("nis") || c.includes("nama"))) {
+        startIdx = 1;
+        const idxNis = firstRow.findIndex(c => c.includes("nis"));
+        const idxNama = firstRow.findIndex(c => c.includes("nama"));
+        const idxKelas = firstRow.findIndex(c => c.includes("kelas"));
+        const idxRuang = firstRow.findIndex(c => c.includes("ruang"));
+        if (idxNis !== -1) colNis = idxNis;
+        if (idxNama !== -1) colNama = idxNama;
+        if (idxKelas !== -1) colKelas = idxKelas;
+        if (idxRuang !== -1) colRuang = idxRuang;
+    }
+
+    const map = new Map();
+    for (let r = startIdx; r < rows.length; r++) {
+        const row = rows[r];
+        const nis = String(row[colNis] || "").trim();
+        const nama = String(row[colNama] || "").trim();
+        const kelas = String(row[colKelas] || "").trim();
+        const ruang = String(row[colRuang] || "").trim();
+
+        if (!nis && !nama) continue;
+        const key = nis || `${nama}_${kelas}_${ruang}`.toLowerCase();
+        map.set(key, { nis, nama: nama || nis, kelas, ruang });
+    }
+
+    return Array.from(map.values());
+}
+
+window.handleImportMasterStudents = function() {
+    const input = document.getElementById("masterStudentFileInput");
+    const btn = document.getElementById("btnImportMasterStudents");
+
+    if (!input.files || !input.files.length) {
+        showToast("Pilih file Excel/CSV master siswa terlebih dahulu.", "error");
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(event) {
+        try {
+            const wb = XLSX.read(event.target.result, { type: "array" });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+            const parsedStudents = parseMasterStudentsSheet(rows);
+
+            if (!parsedStudents.length) {
+                showToast("File tidak berisi data siswa yang valid.", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Menyimpan...";
+
+            await db.collection("settings").doc("students").set(
+                {
+                    total_siswa: parsedStudents.length,
+                    daftar_siswa: parsedStudents,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_by: auth.currentUser ? auth.currentUser.email : "admin"
+                },
+                { merge: true }
+            );
+
+            input.value = "";
+            showToast(`Berhasil menyimpan ${parsedStudents.length} data siswa!`, "success");
+        } catch (error) {
+            console.error(error);
+            showToast("Gagal import master siswa: " + error.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Simpan Data Siswa";
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+};
+
+window.handleClearMasterStudents = async function() {
+    if (!confirm("Hapus Master Data Siswa?\n\nKolom 'Belum Hadir' akan kembali ke mode otomatis.")) return;
+
+    try {
+        await db.collection("settings").doc("students").set(
+            {
+                total_siswa: 0,
+                daftar_siswa: [],
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+        showToast("Master Data Siswa dihapus.", "info");
+    } catch (error) {
+        showToast("Gagal menghapus master siswa: " + error.message, "error");
+    }
+};
+
+function listenStudentSettings() {
+    db.collection("settings").doc("students").onSnapshot(doc => {
+        if (doc.exists && Array.isArray(doc.data().daftar_siswa)) {
+            currentMasterStudentList = doc.data().daftar_siswa;
+        } else {
+            currentMasterStudentList = [];
+        }
+
+        const statusEl = document.getElementById("masterStudentStatusText");
+        const clearBtn = document.getElementById("btnClearMasterStudents");
+
+        if (clearBtn) {
+            clearBtn.classList.toggle("hidden", currentMasterStudentList.length === 0);
+        }
+
+        if (statusEl) {
+            if (currentMasterStudentList.length > 0) {
+                statusEl.textContent = `Aktif: ${currentMasterStudentList.length} siswa terdaftar di master data.`;
+                statusEl.className = "text-[11px] font-bold text-emerald-700";
+            } else {
+                statusEl.textContent = "Belum ada master data siswa (rekap tetap berjalan otomatis dari presensi masuk).";
+                statusEl.className = "text-[11px] font-semibold text-slate-500";
+            }
+        }
+
+        renderAttendanceRecap();
+    }, error => {
+        console.error("Error listening student settings:", error);
+    });
+}
+
+function normalizeRoomDescriptor(rawRuang, rawKelas = "") {
+    const roomsMeta = Array.isArray(currentScheduleData?.rooms) ? currentScheduleData.rooms : [];
+    const rStr = String(rawRuang || "").trim();
+    const kStr = String(rawKelas || "").trim();
+
+    // Cek angka ruang (mendukung: "1", "01", "Ruang 1", "ruang_1", "ruang-1", "R.1")
+    const numMatch = rStr.match(/^(?:ruang[\s._-]*|r[\s._-]*)?0*(\d{1,2})$/i);
+    if (numMatch) {
+        const rNum = parseInt(numMatch[1], 10);
+        const found = roomsMeta.find(m => Number(m.ruang) === rNum);
+        const kelasLabel = found ? found.kelas : kStr;
+        return {
+            key: `R_${String(rNum).padStart(2, "0")}`,
+            label: kelasLabel ? `Ruang ${rNum} (${kelasLabel})` : `Ruang ${rNum}`,
+            sortOrder: rNum
+        };
+    }
+
+    // Cek kecocokan nama kelas dengan roomsMeta (misal "X1 TEI" -> Ruang 1)
+    const cleanTarget = (rStr || kStr).toUpperCase().replace(/\s+/g, "");
+    if (cleanTarget && roomsMeta.length > 0) {
+        const foundByClass = roomsMeta.find(m => m.kelas.toUpperCase().replace(/\s+/g, "") === cleanTarget);
+        if (foundByClass) {
+            return {
+                key: `R_${String(foundByClass.ruang).padStart(2, "0")}`,
+                label: `Ruang ${foundByClass.ruang} (${foundByClass.kelas})`,
+                sortOrder: Number(foundByClass.ruang)
+            };
+        }
+    }
+
+    const fallback = rStr || kStr || "Tanpa Ruang";
+    return {
+        key: `TXT_${fallback.toUpperCase()}`,
+        label: fallback,
+        sortOrder: 999
+    };
+}
+
+function refreshRecapFilterOptions() {
+    const dateSelect = document.getElementById("recapDateFilter");
+    const tokenSelect = document.getElementById("recapTokenFilter");
+    if (!dateSelect || !tokenSelect) return;
+
+    const prevDate = dateSelect.value || "all";
+    const prevToken = tokenSelect.value || "all";
+    const todayISO = toLocalISODate(new Date());
+
+    // Kumpulkan tanggal unik dari presensi & jadwal
+    const dateSet = new Set();
+    latestAttendanceRecords.forEach(a => {
+        if (a.checkinDateISO) dateSet.add(a.checkinDateISO);
+    });
+    (currentScheduleData?.slots || []).forEach(s => {
+        if (s.date) dateSet.add(s.date);
+    });
+
+    const sortedDates = Array.from(dateSet).sort();
+    let dateHTML = `<option value="all">Semua Tanggal</option>`;
+    sortedDates.forEach(iso => {
+        const isToday = iso === todayISO ? " (Hari Ini)" : "";
+        dateHTML += `<option value="${escapeHTML(iso)}">${escapeHTML(formatISODateLabel(iso) + isToday)}</option>`;
+    });
+    dateSelect.innerHTML = dateHTML;
+    if (Array.from(dateSelect.options).some(o => o.value === prevDate)) {
+        dateSelect.value = prevDate;
+    }
+
+    // Kumpulkan token unik dari exams & presensi
+    const tokenMap = new Map();
+    latestExamRecords.forEach(e => {
+        if (e.token) {
+            tokenMap.set(e.token.toUpperCase(), e.displayName);
+        }
+    });
+    latestAttendanceRecords.forEach(a => {
+        const tk = String(a.exam_token || "").trim().toUpperCase();
+        if (tk && !tokenMap.has(tk)) {
+            tokenMap.set(tk, "Ujian");
+        }
+    });
+
+    let tokenHTML = `<option value="all">Semua Ujian / Token</option>`;
+    Array.from(tokenMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([tk, name]) => {
+            tokenHTML += `<option value="${escapeHTML(tk)}">${escapeHTML(tk)} — ${escapeHTML(name)}</option>`;
+        });
+    tokenSelect.innerHTML = tokenHTML;
+    if (Array.from(tokenSelect.options).some(o => o.value === prevToken)) {
+        tokenSelect.value = prevToken;
+    }
+}
+
+window.setRecapViewMode = function(mode) {
+    currentRecapViewMode = mode;
+    document.getElementById("tabRecapRoom")?.classList.toggle("active", mode === "room");
+    document.getElementById("tabRecapExam")?.classList.toggle("active", mode === "exam");
+    document.getElementById("tabRecapAbsent")?.classList.toggle("active", mode === "absent");
+    renderAttendanceRecap();
+};
+
+function getFilteredAttendanceForRecap() {
+    const selectedDate = document.getElementById("recapDateFilter")?.value || "all";
+    const selectedToken = document.getElementById("recapTokenFilter")?.value || "all";
+
+    return latestAttendanceRecords.filter(item => {
+        if (selectedDate !== "all" && item.checkinDateISO !== selectedDate) {
+            return false;
+        }
+        if (selectedToken !== "all" && String(item.exam_token || "").trim().toUpperCase() !== selectedToken) {
+            return false;
+        }
+        return true;
+    });
+}
+
+function buildRecapDatasets() {
+    const filteredRecords = getFilteredAttendanceForRecap();
+    const roomsMeta = Array.isArray(currentScheduleData?.rooms) ? currentScheduleData.rooms : [];
+    const hasMasterStudents = currentMasterStudentList.length > 0;
+
+    // Deduplikasi berdasarkan NIS + Token (atau ID dokumen) agar siswa yang refresh tidak dihitung ganda
+    const uniqueAttendances = new Map();
+    filteredRecords.forEach(rec => {
+        const nisKey = String(rec.nis || "").trim().toLowerCase();
+        const tokenKey = String(rec.exam_token || "").trim().toUpperCase();
+        const dedupKey = nisKey ? `${nisKey}__${tokenKey}` : rec.id;
+        if (!uniqueAttendances.has(dedupKey)) {
+            uniqueAttendances.set(dedupKey, rec);
+        }
+    });
+
+    const dedupList = Array.from(uniqueAttendances.values());
+
+    // Hitung statistik ringkasan atas
+    let officialTotal = 0;
+    let browserTotal = 0;
+    dedupList.forEach(rec => {
+        if (rec.isOfficialApp) officialTotal++;
+        else browserTotal++;
+    });
+
+    // Hitung target siswa per ruang dari Master Siswa
+    const targetByRoom = new Map();
+    currentMasterStudentList.forEach(st => {
+        const desc = normalizeRoomDescriptor(st.ruang, st.kelas);
+        if (!targetByRoom.has(desc.key)) {
+            targetByRoom.set(desc.key, { ...desc, students: [] });
+        }
+        targetByRoom.get(desc.key).students.push(st);
+    });
+
+    // Inisialisasi semua ruang dari Jadwal Excel agar ruang yang masih 0 hadir tetap terlihat
+    const roomGroupMap = new Map();
+    roomsMeta.forEach(rm => {
+        const desc = normalizeRoomDescriptor(rm.ruang, rm.kelas);
+        roomGroupMap.set(desc.key, {
+            key: desc.key,
+            label: desc.label,
+            sortOrder: desc.sortOrder,
+            target: targetByRoom.get(desc.key)?.students.length || 0,
+            hadir: 0,
+            official: 0,
+            browser: 0,
+            presentNisSet: new Set()
+        });
+    });
+
+    // Pastikan ruang dari Master Siswa juga masuk
+    targetByRoom.forEach((val, key) => {
+        if (!roomGroupMap.has(key)) {
+            roomGroupMap.set(key, {
+                key,
+                label: val.label,
+                sortOrder: val.sortOrder,
+                target: val.students.length,
+                hadir: 0,
+                official: 0,
+                browser: 0,
+                presentNisSet: new Set()
+            });
+        }
+    });
+
+    // Agregasi presensi masuk ke Room Group & Exam Group
+    const examInfoByToken = new Map();
+    latestExamRecords.forEach(ex => {
+        if (ex.token) {
+            examInfoByToken.set(ex.token.toUpperCase(), ex);
+        }
+    });
+
+    const examGroupMap = new Map();
+    const allPresentNis = new Set();
+
+    dedupList.forEach(rec => {
+        const nisClean = String(rec.nis || "").trim().toLowerCase();
+        if (nisClean) allPresentNis.add(nisClean);
+
+        // 1. Per Ruang
+        const desc = normalizeRoomDescriptor(rec.ruang, rec.kelas);
+        if (!roomGroupMap.has(desc.key)) {
+            roomGroupMap.set(desc.key, {
+                key: desc.key,
+                label: desc.label,
+                sortOrder: desc.sortOrder,
+                target: targetByRoom.get(desc.key)?.students.length || 0,
+                hadir: 0,
+                official: 0,
+                browser: 0,
+                presentNisSet: new Set()
+            });
+        }
+        const rg = roomGroupMap.get(desc.key);
+        rg.hadir++;
+        if (rec.isOfficialApp) rg.official++;
+        else rg.browser++;
+        if (nisClean) rg.presentNisSet.add(nisClean);
+
+        // 2. Per Token / Mapel
+        const tk = String(rec.exam_token || "TANPA_TOKEN").trim().toUpperCase();
+        if (!examGroupMap.has(tk)) {
+            const exMeta = examInfoByToken.get(tk);
+            examGroupMap.set(tk, {
+                token: tk,
+                mapel: exMeta ? exMeta.displayName : "Ujian",
+                schedule: exMeta?.scheduleLabel || "-",
+                hadir: 0,
+                official: 0,
+                browser: 0
+            });
+        }
+        const eg = examGroupMap.get(tk);
+        eg.hadir++;
+        if (rec.isOfficialApp) eg.official++;
+        else eg.browser++;
+    });
+
+    const roomRows = Array.from(roomGroupMap.values()).sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return a.label.localeCompare(b.label, "id");
+    });
+
+    const examRows = Array.from(examGroupMap.values()).sort((a, b) => b.hadir - a.hadir);
+
+    // Daftar siswa belum hadir (jika Master Siswa tersedia)
+    const absentStudents = hasMasterStudents
+        ? currentMasterStudentList.filter(st => {
+            const nisClean = String(st.nis || "").trim().toLowerCase();
+            return nisClean && !allPresentNis.has(nisClean);
+        }).map(st => {
+            const desc = normalizeRoomDescriptor(st.ruang, st.kelas);
+            return {
+                ...st,
+                roomLabel: desc.label,
+                sortOrder: desc.sortOrder
+            };
+        }).sort((a, b) => {
+            if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+            return String(a.nama || "").localeCompare(String(b.nama || ""), "id");
+        })
+        : [];
+
+    return {
+        dedupList,
+        officialTotal,
+        browserTotal,
+        hasMasterStudents,
+        roomRows,
+        examRows,
+        absentStudents
+    };
+}
+
+function renderAttendanceRecap() {
+    const thead = document.getElementById("recapTableHead");
+    const tbody = document.getElementById("recapTableBody");
+    if (!thead || !tbody) return;
+
+    const {
+        dedupList,
+        officialTotal,
+        browserTotal,
+        hasMasterStudents,
+        roomRows,
+        examRows,
+        absentStudents
+    } = buildRecapDatasets();
+
+    document.getElementById("recapStatHadir").textContent = `${dedupList.length}`;
+    document.getElementById("recapStatOfficial").textContent = `${officialTotal}`;
+    document.getElementById("recapStatBrowser").textContent = `${browserTotal}`;
+    document.getElementById("recapStatAbsent").textContent = hasMasterStudents ? `${absentStudents.length}` : "-";
+
+    if (currentRecapViewMode === "room") {
+        thead.innerHTML = `
+            <tr>
+                <th>Ruang / Kelas</th>
+                <th>Target Siswa</th>
+                <th>Hadir</th>
+                <th>Belum Hadir</th>
+                <th>App Resmi</th>
+                <th>Browser/PC</th>
+                <th>Kehadiran</th>
+            </tr>
+        `;
+
+        if (!roomRows.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Belum ada data ruang atau presensi siswa...</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = roomRows.map(r => {
+            const targetText = r.target > 0 ? `${r.target} Siswa` : `<span class="text-slate-400">-</span>`;
+            const absentCount = r.target > 0 ? Math.max(0, r.target - r.hadir) : null;
+            const absentText = absentCount !== null
+                ? `<span class="font-mono font-bold ${absentCount === 0 ? "text-emerald-600" : "text-amber-700"}">${absentCount}</span>`
+                : `<span class="text-slate-400">-</span>`;
+
+            let progressHTML = `<span class="font-mono font-bold text-indigo-600">${r.hadir} Masuk</span>`;
+            if (r.target > 0) {
+                const pct = Math.min(100, Math.round((r.hadir / r.target) * 100));
+                const barColor = pct >= 90 ? "bg-emerald-500" : (pct >= 50 ? "bg-indigo-500" : "bg-amber-500");
+                progressHTML = `
+                    <div class="flex items-center gap-2 min-w-[110px]">
+                        <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+                        </div>
+                        <span class="font-mono text-[11px] font-extrabold text-slate-700 w-9 text-right">${pct}%</span>
+                    </div>
+                `;
+            }
+
+            return `
+                <tr>
+                    <td><span class="font-bold text-slate-800">${escapeHTML(r.label)}</span></td>
+                    <td class="font-mono text-xs text-slate-600">${targetText}</td>
+                    <td class="font-mono font-extrabold text-indigo-600">${r.hadir}</td>
+                    <td>${absentText}</td>
+                    <td class="font-mono font-bold text-emerald-600">${r.official}</td>
+                    <td class="font-mono font-bold ${r.browser > 0 ? "text-rose-600" : "text-slate-400"}">${r.browser}</td>
+                    <td>${progressHTML}</td>
+                </tr>
+            `;
+        }).join("");
+
+    } else if (currentRecapViewMode === "exam") {
+        thead.innerHTML = `
+            <tr>
+                <th>Token</th>
+                <th>Mata Pelajaran</th>
+                <th>Jadwal Ujian</th>
+                <th>Total Hadir</th>
+                <th>App Resmi</th>
+                <th>Browser/PC</th>
+            </tr>
+        `;
+
+        if (!examRows.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada presensi masuk per mata pelajaran...</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = examRows.map(e => `
+            <tr>
+                <td><span class="font-mono font-extrabold px-2.5 py-1 rounded-lg text-xs bg-indigo-50 text-indigo-700 border border-indigo-100">${escapeHTML(e.token)}</span></td>
+                <td><div class="font-bold text-slate-800">${escapeHTML(e.mapel)}</div></td>
+                <td><span class="font-mono text-[11px] text-slate-600">${escapeHTML(e.schedule)}</span></td>
+                <td class="font-mono font-extrabold text-indigo-600">${e.hadir} Siswa</td>
+                <td class="font-mono font-bold text-emerald-600">${e.official}</td>
+                <td class="font-mono font-bold ${e.browser > 0 ? "text-rose-600" : "text-slate-400"}">${e.browser}</td>
+            </tr>
+        `).join("");
+
+    } else if (currentRecapViewMode === "absent") {
+        thead.innerHTML = `
+            <tr>
+                <th>NIS</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Ruang</th>
+                <th>Keterangan</th>
+            </tr>
+        `;
+
+        if (!hasMasterStudents) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        Klik tombol <b>"+ Data Siswa"</b> di kanan atas panel ini untuk mengunggah daftar NIS siswa agar sistem mendeteksi siswa yang belum hadir.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        if (!absentStudents.length) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-state !text-emerald-600 !not-italic font-bold">Semua siswa pada master data sudah melakukan presensi!</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = absentStudents.map(st => `
+            <tr>
+                <td class="font-mono font-extrabold text-indigo-600">${escapeHTML(st.nis || "-")}</td>
+                <td class="font-bold text-slate-800">${escapeHTML(st.nama || "-")}</td>
+                <td><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[11px]">${escapeHTML(st.kelas || "-")}</span></td>
+                <td class="text-xs font-semibold text-slate-600">${escapeHTML(st.roomLabel)}</td>
+                <td><span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-extrabold">BELUM ABSEN</span></td>
+            </tr>
+        `).join("");
+    }
+}
+
+window.handleExportRecapExcel = function() {
+    const {
+        dedupList,
+        hasMasterStudents,
+        roomRows,
+        examRows,
+        absentStudents
+    } = buildRecapDatasets();
+
+    if (!dedupList.length && !roomRows.length) {
+        showToast("Belum ada data presensi untuk diexport.", "error");
+        return;
+    }
+
+    try {
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: Rekap Per Ruang
+        const sheetRoomData = roomRows.map((r, idx) => ({
+            "No": idx + 1,
+            "Ruang / Kelas": r.label,
+            "Target Siswa": r.target > 0 ? r.target : "-",
+            "Hadir": r.hadir,
+            "Belum Hadir": r.target > 0 ? Math.max(0, r.target - r.hadir) : "-",
+            "App Resmi": r.official,
+            "Browser / PC": r.browser,
+            "Persentase (%)": r.target > 0 ? `${Math.min(100, Math.round((r.hadir / r.target) * 100))}%` : "-"
+        }));
+        const wsRoom = XLSX.utils.json_to_sheet(sheetRoomData.length ? sheetRoomData : [{ Info: "Belum ada data" }]);
+        XLSX.utils.book_append_sheet(wb, wsRoom, "Rekap Per Ruang");
+
+        // Sheet 2: Rekap Per Mapel
+        const sheetExamData = examRows.map((e, idx) => ({
+            "No": idx + 1,
+            "Token": e.token,
+            "Mata Pelajaran": e.mapel,
+            "Jadwal": e.schedule,
+            "Total Hadir": e.hadir,
+            "App Resmi": e.official,
+            "Browser / PC": e.browser
+        }));
+        const wsExam = XLSX.utils.json_to_sheet(sheetExamData.length ? sheetExamData : [{ Info: "Belum ada data" }]);
+        XLSX.utils.book_append_sheet(wb, wsExam, "Rekap Per Mapel");
+
+        // Sheet 3: Detail Hadir Siswa
+        const examMap = new Map(latestExamRecords.map(e => [e.token.toUpperCase(), e.displayName]));
+        const sortedDetail = [...dedupList].sort((a, b) => {
+            const rA = normalizeRoomDescriptor(a.ruang, a.kelas);
+            const rB = normalizeRoomDescriptor(b.ruang, b.kelas);
+            if (rA.sortOrder !== rB.sortOrder) return rA.sortOrder - rB.sortOrder;
+            return String(a.nama || "").localeCompare(String(b.nama || ""), "id");
+        });
+
+        const sheetDetailData = sortedDetail.map((d, idx) => {
+            const tk = String(d.exam_token || "").trim().toUpperCase();
+            return {
+                "No": idx + 1,
+                "Tanggal": d.checkinDateISO || "-",
+                "Waktu Check-in": d.checkinTimeStr || "-",
+                "NIS": d.nis || "-",
+                "Nama Siswa": d.nama || "-",
+                "Kelas": d.kelas || "-",
+                "Ruang": normalizeRoomDescriptor(d.ruang, d.kelas).label,
+                "Token": tk || "-",
+                "Mata Pelajaran": examMap.get(tk) || "-",
+                "Perangkat": d.isOfficialApp ? "App Resmi" : "Browser / PC",
+                "Detail OS": d.osDetail || "-",
+                "Jarak GPS (m)": Number(d.distance_meters || 0)
+            };
+        });
+        const wsDetail = XLSX.utils.json_to_sheet(sheetDetailData.length ? sheetDetailData : [{ Info: "Belum ada data" }]);
+        XLSX.utils.book_append_sheet(wb, wsDetail, "Detail Siswa Hadir");
+
+        // Sheet 4: Daftar Belum Hadir (jika master siswa ada)
+        if (hasMasterStudents) {
+            const sheetAbsentData = absentStudents.map((st, idx) => ({
+                "No": idx + 1,
+                "NIS": st.nis || "-",
+                "Nama Siswa": st.nama || "-",
+                "Kelas": st.kelas || "-",
+                "Ruang": st.roomLabel,
+                "Status": "BELUM ABSEN"
+            }));
+            const wsAbsent = XLSX.utils.json_to_sheet(sheetAbsentData.length ? sheetAbsentData : [{ Info: "Semua siswa hadir" }]);
+            XLSX.utils.book_append_sheet(wb, wsAbsent, "Belum Hadir");
+        }
+
+        const todayISO = toLocalISODate(new Date());
+        XLSX.writeFile(wb, `Rekap_Absensi_A2S_CBT_${todayISO}.xlsx`);
+        showToast("File Excel rekap absensi berhasil diunduh!", "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Gagal export Excel: " + error.message, "error");
+    }
+};
+
 /* =========================================================
    IMPORT CSV MASTER DAFTAR GURU (SINKRON KE KEPSEK)
 ========================================================= */
@@ -1061,7 +2730,6 @@ function parseMasterGuruCSV(csvText) {
         const trimmed = line.trim();
         if (!trimmed) return;
 
-        // Mendukung separator koma (,), titik koma (;), atau tab
         const cols = trimmed
             .split(/[,;\t]+/)
             .map(c => c.replace(/^["']|["']$/g, "").trim())
@@ -1439,36 +3107,188 @@ window.quickFillToken = function(docId, mapel, url, existingToken) {
 };
 
 /* =========================================================
+   HELPERS WAKTU PENGUMPULAN & RENDER EXAMS
+========================================================= */
+function extractExamTimeMs(data) {
+    const raw = data.created_at
+        || data.createdAt
+        || data.submitted_at
+        || data.submittedAt
+        || data.updated_at
+        || data.updatedAt
+        || data.timestamp;
+
+    if (!raw) return 0;
+    if (typeof raw.toDate === "function") return raw.toDate().getTime();
+    if (typeof raw.seconds === "number") return raw.seconds * 1000;
+    const parsed = new Date(raw).getTime();
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function formatExamTimeHTML(ms) {
+    if (!ms) {
+        return `<span class="text-slate-400 italic text-[11px]">-</span>`;
+    }
+    const date = new Date(ms);
+    const tgl = date.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+    const jam = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    return `
+        <div class="font-mono text-[11px] font-bold text-slate-700 whitespace-nowrap">${tgl}</div>
+        <div class="font-mono text-[10px] text-slate-400">${jam}</div>
+    `;
+}
+
+function formatExamTimeCompact(ms) {
+    if (!ms) return "";
+    const date = new Date(ms);
+    const tgl = date.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+    const jam = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    return `${tgl}, ${jam}`;
+}
+
+function renderExamsList() {
+    const tokenList = document.getElementById("tokenList");
+    const teacherBody = document.getElementById("teacherActivityBody");
+    const sortOrder = (document.getElementById("examSort")?.value) || "newest";
+
+    tokenList.innerHTML = "";
+    teacherBody.innerHTML = "";
+
+    if (!latestExamRecords.length) {
+        tokenList.innerHTML = `<div class="text-xs text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">Belum ada ujian tersimpan.</div>`;
+        teacherBody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada aktivitas ujian dari guru.</td></tr>`;
+        return;
+    }
+
+    const sortedRecords = [...latestExamRecords].sort((a, b) => {
+        if (sortOrder === "schedule") {
+            const keyA = a.scheduleDate ? `${a.scheduleDate}_${a.scheduleStart}` : "9999-99-99_99:99";
+            const keyB = b.scheduleDate ? `${b.scheduleDate}_${b.scheduleStart}` : "9999-99-99_99:99";
+            if (keyA !== keyB) return keyA.localeCompare(keyB);
+            return a.displayName.localeCompare(b.displayName, "id");
+        }
+
+        if (a.submittedAtMs === b.submittedAtMs) {
+            return a.displayName.localeCompare(b.displayName, "id");
+        }
+        if (!a.submittedAtMs) return 1;
+        if (!b.submittedAtMs) return -1;
+
+        return sortOrder === "oldest"
+            ? a.submittedAtMs - b.submittedAtMs
+            : b.submittedAtMs - a.submittedAtMs;
+    });
+
+    let teacherRows = "";
+
+    sortedRecords.forEach(item => {
+        const {
+            docId,
+            isActive,
+            displayName,
+            kelas,
+            token,
+            displayToken,
+            teacherEmail,
+            examUrl,
+            spreadsheetUrl,
+            submittedAtMs,
+            scheduleDate,
+            scheduleLabel
+        } = item;
+
+        const compactTime = formatExamTimeCompact(submittedAtMs);
+
+        const tokenCard = document.createElement("div");
+        tokenCard.className = "p-3.5 bg-slate-50/90 hover:bg-white border border-slate-200 hover:border-indigo-200 rounded-xl space-y-2.5 transition-all";
+        tokenCard.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                    <div class="font-bold text-slate-700 text-xs truncate">${escapeHTML(displayName)}</div>
+                    <div class="font-mono font-extrabold text-indigo-600 text-sm tracking-wide mt-0.5">${escapeHTML(displayToken)}</div>
+                    ${scheduleLabel ? `<div class="font-mono text-[10px] font-bold text-blue-600 mt-0.5">${escapeHTML(scheduleLabel)}</div>` : (compactTime ? `<div class="font-mono text-[10px] text-slate-400 mt-0.5">Kumpul: ${compactTime}</div>` : "")}
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
+                        ${isActive ? "AKTIF" : "MATI"}
+                    </button>
+                    <button type="button" onclick="handleDeleteToken('${docId}', '${escapeHTML(displayToken)}')" title="Hapus Token" class="p-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline truncate">Buka Form ↗</a>` : `<span class="text-[11px] text-amber-600 font-medium">Form belum diatur</span>`}
+                <button type="button" onclick="quickFillToken('${docId}', '${escapeHTML(displayName)}', '${escapeHTML(examUrl)}', '${escapeHTML(token)}')" class="inline-flex items-center gap-1 text-[10px] font-bold bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 rounded-lg px-2.5 py-1 text-slate-600 hover:text-indigo-700 transition">Edit</button>
+            </div>
+        `;
+        tokenList.appendChild(tokenCard);
+
+        const scheduleBadgeHTML = scheduleLabel
+            ? `<div class="mt-1.5"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 font-mono text-[10px] font-bold">📅 ${escapeHTML(scheduleLabel)}</span></div>`
+            : `<div class="mt-1"><span class="text-[10px] text-slate-400 italic">Belum terjadwal</span></div>`;
+
+        teacherRows += `
+            <tr data-schedule-date="${escapeHTML(scheduleDate || "")}" data-has-schedule="${scheduleDate ? "1" : "0"}">
+                <td>${formatExamTimeHTML(submittedAtMs)}</td>
+                <td><div class="font-bold text-slate-800">${escapeHTML(teacherEmail)}</div></td>
+                <td>
+                    <div class="font-bold text-slate-800">${escapeHTML(displayName)}</div>
+                    ${kelas ? `<div class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(kelas)}</div>` : ""}
+                    ${scheduleBadgeHTML}
+                </td>
+                <td><span class="font-mono font-extrabold px-2.5 py-1 rounded-lg text-xs ${token ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "bg-amber-50 text-amber-700 border border-amber-200"}">${escapeHTML(displayToken)}</span></td>
+                <td>
+                    <div class="space-y-1">
+                        ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:underline">Form Soal ↗</a>` : `<span class="block text-[11px] text-slate-400">Form tidak ada</span>`}
+                        ${spreadsheetUrl ? `<a href="${escapeHTML(spreadsheetUrl)}" target="_blank" class="block text-[11px] font-semibold text-emerald-600 hover:underline">Spreadsheet ↗</a>` : `<span class="block text-[11px] text-slate-400">Spreadsheet tidak ada</span>`}
+                    </div>
+                </td>
+                <td>
+                    <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
+                        ${isActive ? "AKTIF" : "MATI"}
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    teacherBody.innerHTML = teacherRows;
+}
+
+/* =========================================================
    LISTEN EXAMS & ATTENDANCES
 ========================================================= */
 function listenExams() {
     db.collection("exams").onSnapshot(snapshot => {
-        const tokenList = document.getElementById("tokenList");
-        const teacherBody = document.getElementById("teacherActivityBody");
         const teacherCount = document.getElementById("teacherExamCount");
         const totalExams = document.getElementById("statTotalExams");
         const activeExams = document.getElementById("statActiveExams");
         const totalGuru = document.getElementById("statTotalGuru");
 
-        tokenList.innerHTML = "";
-        teacherBody.innerHTML = "";
-
         totalExams.textContent = `${snapshot.size} Ujian`;
         teacherCount.textContent = `${snapshot.size} Ujian`;
 
         if (snapshot.empty) {
-            tokenList.innerHTML = `<div class="text-xs text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">Belum ada ujian tersimpan.</div>`;
-            teacherBody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada aktivitas ujian dari guru.</td></tr>`;
+            latestExamRecords = [];
             totalGuru.textContent = "0 Guru";
             activeExams.textContent = "0 Ujian";
             window._submittedTeacherEmails = new Set();
             updateGuruSyncPreview();
+            updateSchedulePreviewUI();
+            refreshRecapFilterOptions();
+            renderExamsList();
+            renderAttendanceRecap();
             return;
         }
 
         let activeCount = 0;
+        let hasUnsyncedWithSchedule = false;
         const teachers = new Set();
-        let teacherRows = "";
+        const records = [];
+        const currentSchedVersion = currentScheduleData?.version_tag || 0;
 
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -1485,61 +3305,48 @@ function listenExams() {
 
             const examUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || "";
             const spreadsheetUrl = data.spreadsheetUrl || "";
+            const submittedAtMs = extractExamTimeMs(data);
 
-            const tokenCard = document.createElement("div");
-            tokenCard.className = "p-3.5 bg-slate-50/90 hover:bg-white border border-slate-200 hover:border-indigo-200 rounded-xl space-y-2.5 transition-all";
-            tokenCard.innerHTML = `
-                <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
-                        <div class="font-bold text-slate-700 text-xs truncate">${escapeHTML(displayName)}</div>
-                        <div class="font-mono font-extrabold text-indigo-600 text-sm tracking-wide mt-0.5">${escapeHTML(displayToken)}</div>
-                    </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
-                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
-                            ${isActive ? "AKTIF" : "MATI"}
-                        </button>
-                        <button type="button" onclick="handleDeleteToken('${docId}', '${escapeHTML(displayToken)}')" title="Hapus Token" class="p-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
-                    ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline truncate">Buka Form ↗</a>` : `<span class="text-[11px] text-amber-600 font-medium">Form belum diatur</span>`}
-                    <button type="button" onclick="quickFillToken('${docId}', '${escapeHTML(displayName)}', '${escapeHTML(examUrl)}', '${escapeHTML(token)}')" class="inline-flex items-center gap-1 text-[10px] font-bold bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 rounded-lg px-2.5 py-1 text-slate-600 hover:text-indigo-700 transition">Edit</button>
-                </div>
-            `;
-            tokenList.appendChild(tokenCard);
+            const scheduleDate = data.schedule_date || "";
+            const scheduleStart = data.schedule_start || "";
+            const scheduleEnd = data.schedule_end || "";
+            const scheduleLabel = data.schedule_label || "";
 
-            teacherRows += `
-                <tr>
-                    <td><div class="font-bold text-slate-800">${escapeHTML(teacherEmail)}</div></td>
-                    <td>
-                        <div class="font-bold text-slate-800">${escapeHTML(displayName)}</div>
-                        ${kelas ? `<div class="text-[11px] text-slate-400 mt-0.5">${escapeHTML(kelas)}</div>` : ""}
-                    </td>
-                    <td><span class="font-mono font-extrabold px-2.5 py-1 rounded-lg text-xs ${token ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "bg-amber-50 text-amber-700 border border-amber-200"}">${escapeHTML(displayToken)}</span></td>
-                    <td>
-                        <div class="space-y-1">
-                            ${examUrl ? `<a href="${escapeHTML(examUrl)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:underline">Form Soal ↗</a>` : `<span class="block text-[11px] text-slate-400">Form tidak ada</span>`}
-                            ${spreadsheetUrl ? `<a href="${escapeHTML(spreadsheetUrl)}" target="_blank" class="block text-[11px] font-semibold text-emerald-600 hover:underline">Spreadsheet ↗</a>` : `<span class="block text-[11px] text-slate-400">Spreadsheet tidak ada</span>`}
-                        </div>
-                    </td>
-                    <td>
-                        <button type="button" onclick="handleToggleToken('${docId}', ${!isActive})" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition ${isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"}">
-                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}"></span>
-                            ${isActive ? "AKTIF" : "MATI"}
-                        </button>
-                    </td>
-                </tr>
-            `;
+            if (currentSchedVersion && data.schedule_synced_version !== currentSchedVersion) {
+                hasUnsyncedWithSchedule = true;
+            }
+
+            records.push({
+                docId,
+                isActive,
+                displayName,
+                kelas,
+                token,
+                displayToken,
+                teacherEmail,
+                examUrl,
+                spreadsheetUrl,
+                submittedAtMs,
+                scheduleDate,
+                scheduleStart,
+                scheduleEnd,
+                scheduleLabel
+            });
         });
 
-        teacherBody.innerHTML = teacherRows;
+        latestExamRecords = records;
         window._submittedTeacherEmails = teachers;
         totalGuru.textContent = `${teachers.size} Guru`;
         activeExams.textContent = `${activeCount} Ujian`;
         updateGuruSyncPreview();
+        updateSchedulePreviewUI();
+        refreshRecapFilterOptions();
+        renderExamsList();
+        renderAttendanceRecap();
+
+        if (hasUnsyncedWithSchedule && currentScheduleData?.slots?.length) {
+            syncExamsWithSchedule(currentScheduleData.slots, currentSchedVersion);
+        }
     }, error => {
         console.error("Error listening exams:", error);
         showToast("Gagal memuat data ujian.", "error");
@@ -1556,44 +3363,57 @@ function listenAttendances() {
         stat.textContent = `${snapshot.size} Siswa`;
 
         if (snapshot.empty) {
+            latestAttendanceRecords = [];
             tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Belum ada data presensi yang masuk.</td></tr>`;
+            refreshRecapFilterOptions();
+            renderAttendanceRecap();
             return;
         }
 
         const records = [];
-        snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            let timeStr = "-";
+            let dateISO = "";
+            let timeMs = 0;
 
-        records.sort((a, b) => {
-            function getTime(value) {
-                if (!value) return 0;
-                if (typeof value.toDate === "function") return value.toDate().getTime();
-                return new Date(value).getTime() || 0;
-            }
-            return getTime(b.checkin_time) - getTime(a.checkin_time);
-        });
-
-        let html = "";
-        records.forEach(data => {
-            let time = "-";
             if (data.checkin_time) {
                 const date = typeof data.checkin_time.toDate === "function" ? data.checkin_time.toDate() : new Date(data.checkin_time);
                 if (!isNaN(date.getTime())) {
-                    time = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+                    timeMs = date.getTime();
+                    timeStr = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+                    dateISO = toLocalISODate(date);
                 }
             }
 
             const perangkat = data.perangkat || {};
-            const isOfficialApp = perangkat.isOfficialApp || perangkat.is_official_app;
-            const os = perangkat.osDetail || perangkat.os_detail || "Tidak diketahui";
-            const distance = Number(data.distance_meters || 0);
+            const isOfficialApp = Boolean(perangkat.isOfficialApp || perangkat.is_official_app);
+            const osDetail = perangkat.osDetail || perangkat.os_detail || "Tidak diketahui";
 
-            const deviceBadge = isOfficialApp
-                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>App Resmi <span class="font-medium text-emerald-600/80">(${escapeHTML(os)})</span></span>`
-                : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Browser/PC <span class="font-medium text-red-600/80">(${escapeHTML(os)})</span></span>`;
+            records.push({
+                id: doc.id,
+                ...data,
+                checkinTimeMs: timeMs,
+                checkinTimeStr: timeStr,
+                checkinDateISO: dateISO,
+                isOfficialApp,
+                osDetail
+            });
+        });
+
+        records.sort((a, b) => b.checkinTimeMs - a.checkinTimeMs);
+        latestAttendanceRecords = records;
+
+        let html = "";
+        records.forEach(data => {
+            const distance = Number(data.distance_meters || 0);
+            const deviceBadge = data.isOfficialApp
+                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>App Resmi <span class="font-medium text-emerald-600/80">(${escapeHTML(data.osDetail)})</span></span>`
+                : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Browser/PC <span class="font-medium text-red-600/80">(${escapeHTML(data.osDetail)})</span></span>`;
 
             html += `
                 <tr>
-                    <td class="font-mono text-slate-400 font-semibold">${time}</td>
+                    <td class="font-mono text-slate-400 font-semibold">${data.checkinTimeStr}</td>
                     <td class="font-mono font-extrabold text-indigo-600">${escapeHTML(data.nis || "-")}</td>
                     <td class="font-bold text-slate-800">${escapeHTML(data.nama || "-")}</td>
                     <td><span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[11px]">${escapeHTML(data.ruang || "-")}</span></td>
@@ -1606,6 +3426,8 @@ function listenAttendances() {
         });
 
         tbody.innerHTML = html;
+        refreshRecapFilterOptions();
+        renderAttendanceRecap();
     }, error => {
         console.error("Error listening attendance:", error);
         showToast("Gagal memuat data presensi.", "error");
@@ -1694,6 +3516,7 @@ window.importGuruFromCSV = async function() {
 
 function setupFilters() {
     const examSearch = document.getElementById("examSearch");
+    const examSort = document.getElementById("examSort");
     const examFilter = document.getElementById("examFilter");
     const attendanceSearch = document.getElementById("attendanceSearch");
     const attendanceFilter = document.getElementById("attendanceFilter");
@@ -1701,12 +3524,20 @@ function setupFilters() {
     function filterExams() {
         const keyword = (examSearch.value || "").toLowerCase();
         const filter = examFilter.value;
+        const { isoDate: todayISO } = getNowLocalDateAndMinutes();
+
         document.querySelectorAll("#teacherActivityBody tr").forEach(row => {
             const text = row.innerText.toLowerCase();
             const active = text.includes("aktif");
+            const rowScheduleDate = row.getAttribute("data-schedule-date") || "";
+            const hasSchedule = row.getAttribute("data-has-schedule") === "1";
+
             let visible = !keyword || text.includes(keyword);
             if (filter === "active") visible = visible && active;
             else if (filter === "inactive") visible = visible && !active;
+            else if (filter === "today") visible = visible && (rowScheduleDate === todayISO);
+            else if (filter === "unscheduled") visible = visible && !hasSchedule;
+
             row.style.display = visible ? "" : "none";
         });
     }
@@ -1725,6 +3556,10 @@ function setupFilters() {
 
     examSearch.addEventListener("input", filterExams);
     examFilter.addEventListener("change", filterExams);
+    examSort.addEventListener("change", () => {
+        renderExamsList();
+        filterExams();
+    });
     attendanceSearch.addEventListener("input", filterAttendance);
     attendanceFilter.addEventListener("change", filterAttendance);
 
@@ -1756,9 +3591,14 @@ function initializeAdmin() {
     document.getElementById("btnSaveExam").addEventListener("click", handleSaveToken);
     setupFilters();
     setupNavigation();
+    listenScheduleSettings();
+    listenStudentSettings();
     listenPasSettings();
     listenExams();
     listenAttendances();
+
+    if (autoScheduleInterval) clearInterval(autoScheduleInterval);
+    autoScheduleInterval = setInterval(runAutoScheduleCheck, 30000);
 
     if (window.lucide) {
         lucide.createIcons();
