@@ -448,6 +448,14 @@
                 </div>
 
                 <div class="flex items-center gap-2.5 shrink-0">
+                    <button id="btnOpenScheduleModal"
+                            type="button"
+                            onclick="openScheduleModal()"
+                            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-xs font-bold transition">
+                        <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
+                        <span>Jadwal & Pengawas</span>
+                    </button>
+
                     <span class="status-live">
                         <span class="dot"></span>
                         <span class="hidden sm:inline">LIVE</span>
@@ -583,6 +591,40 @@
                     </div>
 
                 </div>
+
+                <!-- BANNER JADWAL RESMI & SESI AKTIF -->
+                <div id="scheduleSummaryCard" class="hidden panel !py-4 border-teal-200/80 bg-gradient-to-r from-white via-teal-50/30 to-white">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span id="scheduleSessionStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200">
+                                        JADWAL TERSINKRON
+                                    </span>
+                                    <span id="scheduleMetaText" class="text-[11px] font-semibold text-slate-500">
+                                        -
+                                    </span>
+                                </div>
+                                <h3 id="scheduleHighlightTitle" class="text-sm font-extrabold text-slate-900 mt-1">
+                                    -
+                                </h3>
+                                <p id="scheduleHighlightSub" class="text-xs text-slate-600 mt-0.5">
+                                    -
+                                </p>
+                            </div>
+                        </div>
+
+                        <button type="button"
+                                onclick="openScheduleModal()"
+                                class="self-start sm:self-center inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition shadow-sm shrink-0">
+                            <i data-lucide="list-checks" class="w-3.5 h-3.5"></i>
+                            <span>Lihat Jadwal & Pengawas</span>
+                        </button>
+                    </div>
+                </div>
             </section>
 
 
@@ -644,7 +686,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-900">Rekapitulasi Kehadiran per Ruang Ujian</h2>
-                        <p class="text-xs text-slate-500">Pantau distribusi peserta yang sudah masuk di setiap ruang secara otomatis.</p>
+                        <p id="rekapRuangSubtitle" class="text-xs text-slate-500">Pantau distribusi peserta dan guru pengawas di setiap ruang secara otomatis.</p>
                     </div>
                     <span id="totalRuangBadge" class="self-start sm:self-center px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-100 text-xs font-extrabold">
                         0 Ruang Aktif
@@ -664,7 +706,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-900">Status Kesiapan Mapel & Guru (Sudah Input)</h2>
-                        <p class="text-xs text-slate-500">Daftar mata pelajaran yang telah diinput oleh guru beserta status kesiapannya.</p>
+                        <p class="text-xs text-slate-500">Daftar mata pelajaran yang telah diinput oleh guru beserta jadwal dan status kesiapannya.</p>
                     </div>
                     <span id="examCountBadge" class="self-start sm:self-center px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-extrabold">
                         0 Mapel
@@ -674,7 +716,7 @@
                 <div class="flex flex-col sm:flex-row gap-2.5 mb-4">
                     <div class="search-wrap">
                         <i data-lucide="search" class="w-4 h-4"></i>
-                        <input id="examSearch" placeholder="Cari nama guru, mata pelajaran, atau kelas...">
+                        <input id="examSearch" placeholder="Cari nama guru, mata pelajaran, kelas, atau jadwal...">
                     </div>
                     <select id="examStatusFilter" class="filter-select">
                         <option value="all">Semua Kesiapan</option>
@@ -688,7 +730,7 @@
                         <thead>
                             <tr>
                                 <th>Guru Pengampu</th>
-                                <th>Mata Pelajaran / Kelas</th>
+                                <th>Mata Pelajaran / Kelas & Jadwal</th>
                                 <th>Tautan Soal</th>
                                 <th>Token</th>
                                 <th>Status Sesi</th>
@@ -770,6 +812,30 @@
 </div>
 
 
+<!-- ========================================================= -->
+<!-- MODAL JADWAL RESMI & PENGAWAS RUANG (READ-ONLY) -->
+<!-- ========================================================= -->
+<div id="scheduleModal"
+     class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm items-center justify-center p-4">
+    <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[88vh] flex flex-col">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 bg-slate-50">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-widest text-teal-700">Jadwal Resmi Sekolah · Read-Only</p>
+                <h2 id="scheduleModalTitle" class="text-lg font-extrabold text-slate-900 mt-0.5">Jadwal Ujian & Pengawas Ruang</h2>
+            </div>
+            <button type="button"
+                    onclick="closeScheduleModal()"
+                    class="w-9 h-9 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 flex items-center justify-center font-bold">
+                ✕
+            </button>
+        </div>
+        <div id="scheduleModalBody" class="p-6 overflow-y-auto space-y-4 text-xs">
+            <p class="text-center text-slate-400 py-8">Memuat jadwal...</p>
+        </div>
+    </div>
+</div>
+
+
 <script>
 if (window.lucide) {
     lucide.createIcons();
@@ -809,7 +875,10 @@ const executiveState = {
     activeTeachersCount: 0,
     totalExamsCount: 0,
     fullyReadyExamsCount: 0,
-    activeExamsCount: 0
+    activeExamsCount: 0,
+    scheduleData: null,
+    examDocs: [],
+    attendanceDocs: []
 };
 
 function escapeHTML(value) {
@@ -833,6 +902,263 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+/* =========================================================
+   NORMALISASI RUANG & HELPER JADWAL (SINKRON DENGAN ADMIN & GURU)
+========================================================= */
+function normalizeRoomDescriptor(rawRuang, rawKelas = "") {
+    const roomsMeta = Array.isArray(executiveState.scheduleData?.rooms) ? executiveState.scheduleData.rooms : [];
+    const rStr = String(rawRuang || "").trim();
+    const kStr = String(rawKelas || "").trim();
+
+    // Mendukung format: "1", "01", "Ruang 1", "ruang_1", "ruang-1", "R.1"
+    const numMatch = rStr.match(/^(?:ruang[\s._-]*|r[\s._-]*)?0*(\d{1,2})$/i);
+    if (numMatch) {
+        const roomNo = parseInt(numMatch[1], 10);
+        const found = roomsMeta.find(m => Number(m.room) === roomNo);
+        if (found) {
+            return {
+                key: `room_${roomNo}`,
+                label: found.label || `Ruang ${roomNo} (${found.kelas})`,
+                roomNumber: roomNo,
+                kelas: found.kelas || kStr
+            };
+        }
+        return {
+            key: `room_${roomNo}`,
+            label: kStr ? `Ruang ${roomNo} (${kStr})` : `Ruang ${roomNo}`,
+            roomNumber: roomNo,
+            kelas: kStr
+        };
+    }
+
+    // Jika rStr sudah mengandung "Ruang X (...)"
+    const fullMatch = rStr.match(/^ruang[\s._-]*0*(\d{1,2})\b/i);
+    if (fullMatch) {
+        const roomNo = parseInt(fullMatch[1], 10);
+        const found = roomsMeta.find(m => Number(m.room) === roomNo);
+        if (found) {
+            return {
+                key: `room_${roomNo}`,
+                label: found.label || rStr,
+                roomNumber: roomNo,
+                kelas: found.kelas || kStr
+            };
+        }
+    }
+
+    if (rStr) {
+        return {
+            key: `raw_${rStr.toLowerCase()}`,
+            label: rStr,
+            roomNumber: 999,
+            kelas: kStr
+        };
+    }
+
+    if (kStr) {
+        const byKelas = roomsMeta.find(m => m.kelas.toLowerCase() === kStr.toLowerCase());
+        if (byKelas) {
+            return {
+                key: `room_${byKelas.room}`,
+                label: byKelas.label,
+                roomNumber: Number(byKelas.room),
+                kelas: byKelas.kelas
+            };
+        }
+        return {
+            key: `kelas_${kStr.toLowerCase()}`,
+            label: `Kelas ${kStr}`,
+            roomNumber: 998,
+            kelas: kStr
+        };
+    }
+
+    return {
+        key: "tanpa_ruang",
+        label: "Tanpa Ruang",
+        roomNumber: 1000,
+        kelas: ""
+    };
+}
+
+function getTodayDateStringWIB() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).formatToParts(now);
+    const y = parts.find(p => p.type === "year")?.value || now.getFullYear();
+    const m = parts.find(p => p.type === "month")?.value || String(now.getMonth() + 1).padStart(2, "0");
+    const d = parts.find(p => p.type === "day")?.value || String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function getCurrentMinutesWIB() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    }).formatToParts(now);
+    const hh = parseInt(parts.find(p => p.type === "hour")?.value || "0", 10);
+    const mm = parseInt(parts.find(p => p.type === "minute")?.value || "0", 10);
+    return hh * 60 + mm;
+}
+
+function parseTimeToMinutes(hhmm) {
+    const m = String(hhmm || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+
+function getReferenceScheduleSlot() {
+    const slots = Array.isArray(executiveState.scheduleData?.slots) ? executiveState.scheduleData.slots : [];
+    if (!slots.length) return { slot: null, mode: "none" };
+
+    const todayStr = getTodayDateStringWIB();
+    const nowMin = getCurrentMinutesWIB();
+
+    // 1. Cari sesi yang sedang aktif saat ini
+    const activeSlot = slots.find(s => {
+        if (s.date !== todayStr) return false;
+        const st = parseTimeToMinutes(s.start);
+        const en = parseTimeToMinutes(s.end);
+        return st !== null && en !== null && nowMin >= st && nowMin <= en;
+    });
+    if (activeSlot) return { slot: activeSlot, mode: "live" };
+
+    // 2. Cari sesi berikutnya hari ini
+    const upcomingToday = slots.find(s => {
+        if (s.date !== todayStr) return false;
+        const st = parseTimeToMinutes(s.start);
+        return st !== null && nowMin < st;
+    });
+    if (upcomingToday) return { slot: upcomingToday, mode: "today_next" };
+
+    // 3. Cari sesi terdekat yang akan datang
+    const futureSlot = slots.find(s => s.date > todayStr);
+    if (futureSlot) return { slot: futureSlot, mode: "upcoming" };
+
+    // 4. Fallback sesi terakhir
+    return { slot: slots[slots.length - 1], mode: "past" };
+}
+
+function renderScheduleSummaryBanner() {
+    const card = document.getElementById("scheduleSummaryCard");
+    const topBtn = document.getElementById("btnOpenScheduleModal");
+    const statusBadge = document.getElementById("scheduleSessionStatus");
+    const metaText = document.getElementById("scheduleMetaText");
+    const titleEl = document.getElementById("scheduleHighlightTitle");
+    const subEl = document.getElementById("scheduleHighlightSub");
+
+    const sched = executiveState.scheduleData;
+    const slots = Array.isArray(sched?.slots) ? sched.slots : [];
+    const rooms = Array.isArray(sched?.rooms) ? sched.rooms : [];
+
+    if (!slots.length) {
+        card?.classList.add("hidden");
+        topBtn?.classList.add("hidden");
+        return;
+    }
+
+    card?.classList.remove("hidden");
+    topBtn?.classList.remove("hidden");
+
+    const { slot, mode } = getReferenceScheduleSlot();
+    metaText.textContent = `${slots.length} Sesi Terjadwal · ${rooms.length} Ruang Ujian`;
+
+    if (slot) {
+        if (mode === "live") {
+            statusBadge.textContent = "SEDANG BERLANGSUNG";
+            statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200";
+        } else if (mode === "today_next") {
+            statusBadge.textContent = "SESI HARI INI";
+            statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200";
+        } else if (mode === "upcoming") {
+            statusBadge.textContent = "JADWAL MENDATANG";
+            statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200";
+        } else {
+            statusBadge.textContent = "JADWAL TERSINKRON";
+            statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200";
+        }
+
+        const proctorCount = Array.isArray(slot.pengawas) ? slot.pengawas.length : 0;
+        titleEl.textContent = `${slot.mapel} (Kelas ${slot.kelas})`;
+        subEl.textContent = `${slot.shortDateLabel || slot.date} · Pukul ${slot.timeLabel} WIB · ${proctorCount} Pengawas Ruang ditugaskan`;
+    }
+}
+
+window.openScheduleModal = function() {
+    const modal = document.getElementById("scheduleModal");
+    const titleEl = document.getElementById("scheduleModalTitle");
+    const bodyEl = document.getElementById("scheduleModalBody");
+    const slots = Array.isArray(executiveState.scheduleData?.slots) ? executiveState.scheduleData.slots : [];
+
+    if (!modal || !slots.length) return;
+
+    titleEl.textContent = executiveState.scheduleData?.title || "Jadwal Ujian & Pengawas Ruang";
+
+    const grouped = new Map();
+    slots.forEach(s => {
+        const key = s.dateRaw || s.date;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(s);
+    });
+
+    let html = "";
+    grouped.forEach((daySlots, dateHeading) => {
+        html += `
+            <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-100 px-4 py-2.5 font-extrabold text-slate-800 flex items-center justify-between">
+                    <span>${escapeHTML(dateHeading)}</span>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800">${daySlots.length} Sesi</span>
+                </div>
+                <div class="divide-y divide-slate-100">
+        `;
+
+        daySlots.forEach(s => {
+            const pengawasHTML = (s.pengawas || [])
+                .map(p => `<span class="inline-block px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[11px] text-slate-600"><b>R.${p.ruang}</b> (${escapeHTML(p.kelas)}): ${escapeHTML(p.nama)}</span>`)
+                .join(" ");
+
+            html += `
+                <div class="p-4 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-800 font-bold text-xs font-mono">${escapeHTML(s.timeLabel)}</span>
+                            <span class="font-extrabold text-slate-900 text-sm">${escapeHTML(s.mapel)}</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">Kelas ${escapeHTML(s.kelas)}</span>
+                    </div>
+                    ${pengawasHTML ? `<div class="flex flex-wrap gap-1.5 pt-1">${pengawasHTML}</div>` : ""}
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+    });
+
+    bodyEl.innerHTML = html;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+};
+
+window.closeScheduleModal = function() {
+    const modal = document.getElementById("scheduleModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+};
+
+document.getElementById("scheduleModal")?.addEventListener("click", e => {
+    if (e.target.id === "scheduleModal") {
+        window.closeScheduleModal();
+    }
+});
 
 /* =========================================================
    LOGIN & LOGOUT
@@ -1097,114 +1423,91 @@ function renderTeacherAndExamRecap() {
 }
 
 /* =========================================================
-   READ-ONLY LISTENER: SETTINGS DAFTAR MASTER GURU
+   RENDER TABEL KESIAPAN UJIAN & GURU
 ========================================================= */
-function listenTargetGuruSetting() {
-    db.collection("settings").doc("pas").onSnapshot(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            executiveState.masterTeachers = Array.isArray(data.daftar_guru) ? data.daftar_guru : [];
-            executiveState.targetTotalGuru = executiveState.masterTeachers.length > 0
-                ? executiveState.masterTeachers.length
-                : (Number(data.total_guru) || 0);
-        } else {
-            executiveState.masterTeachers = [];
-            executiveState.targetTotalGuru = 0;
-        }
+function renderExamReadinessTable() {
+    const tbody = document.getElementById("examReadinessBody");
+    const examCountBadge = document.getElementById("examCountBadge");
+    const docs = executiveState.examDocs;
+
+    const total = docs.length;
+    examCountBadge.textContent = `${total} Mapel`;
+
+    if (total === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 italic">Belum ada data ujian yang diinput guru.</td></tr>`;
+        executiveState.submittedEmailsSet = new Set();
+        executiveState.activeTeachersCount = 0;
+        executiveState.totalExamsCount = 0;
+        executiveState.fullyReadyExamsCount = 0;
+        executiveState.activeExamsCount = 0;
         renderTeacherAndExamRecap();
-    }, error => {
-        console.error("Error listening settings:", error);
-        const tbody = document.getElementById("missingTeachersBody");
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-600 font-semibold">Gagal membaca data master guru: ${escapeHTML(error.message)}</td></tr>`;
-        }
+        return;
+    }
+
+    let activeCount = 0;
+    let fullyReadyCount = 0;
+    const teachers = new Set();
+    let rowsHTML = "";
+
+    docs.forEach(data => {
+        const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
+        const displayName = data.nama_ujian || data.mapel || "Ujian";
+        const kelas = data.kelas || "";
+        const scheduleLabel = data.schedule_label || "";
+        const token = (data.token || "").trim();
+        const teacherEmail = (data.createdByEmail || data.emailGuru || data.email || "Guru SMKN 1").trim();
+        const examUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || "";
+
+        teachers.add(teacherEmail.toLowerCase());
+        if (isActive) activeCount++;
+
+        const isFullyReady = Boolean(examUrl && token);
+        if (isFullyReady) fullyReadyCount++;
+
+        rowsHTML += `
+            <tr data-ready="${isFullyReady && isActive ? 'ready' : 'pending'}">
+                <td class="font-bold text-slate-800">${escapeHTML(teacherEmail)}</td>
+                <td>
+                    <div class="font-bold text-slate-800">${escapeHTML(displayName)}</div>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                        ${kelas ? `<span class="text-[11px] text-slate-500 font-semibold">${escapeHTML(kelas)}</span>` : ""}
+                        ${scheduleLabel ? `<span class="px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-100 text-[10px] font-bold">📅 ${escapeHTML(scheduleLabel)}</span>` : ""}
+                    </div>
+                </td>
+                <td>
+                    ${examUrl
+                        ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">✓ Tautan Siap</span>`
+                        : `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">! Belum Ada Link</span>`
+                    }
+                </td>
+                <td>
+                    ${token
+                        ? `<span class="font-mono font-extrabold text-xs px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">${escapeHTML(token)}</span>`
+                        : `<span class="text-[11px] font-semibold text-slate-400 italic">Belum set</span>`
+                    }
+                </td>
+                <td>
+                    ${isActive
+                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>AKTIF</span>`
+                        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>NONAKTIF</span>`
+                    }
+                </td>
+            </tr>
+        `;
     });
+
+    tbody.innerHTML = rowsHTML;
+
+    executiveState.submittedEmailsSet = teachers;
+    executiveState.activeTeachersCount = teachers.size;
+    executiveState.totalExamsCount = total;
+    executiveState.fullyReadyExamsCount = fullyReadyCount;
+    executiveState.activeExamsCount = activeCount;
+    renderTeacherAndExamRecap();
 }
 
 /* =========================================================
-   READ-ONLY LISTENER: KESIAPAN UJIAN & GURU
-========================================================= */
-function listenExamReadiness() {
-    db.collection("exams").onSnapshot(snapshot => {
-        const tbody = document.getElementById("examReadinessBody");
-        const examCountBadge = document.getElementById("examCountBadge");
-
-        const total = snapshot.size;
-        examCountBadge.textContent = `${total} Mapel`;
-
-        if (total === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 italic">Belum ada data ujian yang diinput guru.</td></tr>`;
-            executiveState.submittedEmailsSet = new Set();
-            executiveState.activeTeachersCount = 0;
-            executiveState.totalExamsCount = 0;
-            executiveState.fullyReadyExamsCount = 0;
-            executiveState.activeExamsCount = 0;
-            renderTeacherAndExamRecap();
-            return;
-        }
-
-        let activeCount = 0;
-        let fullyReadyCount = 0;
-        const teachers = new Set();
-        let rowsHTML = "";
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const isActive = data.is_active !== undefined ? data.is_active : (data.isActive !== undefined ? data.isActive : true);
-            const displayName = data.nama_ujian || data.mapel || "Ujian";
-            const kelas = data.kelas || "";
-            const token = (data.token || "").trim();
-            const teacherEmail = (data.createdByEmail || data.emailGuru || data.email || "Guru SMKN 1").trim();
-            const examUrl = data.examUrl || data.form_url || data.link_form || data.link_gform || data.url || data.link || "";
-
-            teachers.add(teacherEmail.toLowerCase());
-            if (isActive) activeCount++;
-
-            const isFullyReady = Boolean(examUrl && token);
-            if (isFullyReady) fullyReadyCount++;
-
-            rowsHTML += `
-                <tr data-ready="${isFullyReady && isActive ? 'ready' : 'pending'}">
-                    <td class="font-bold text-slate-800">${escapeHTML(teacherEmail)}</td>
-                    <td>
-                        <div class="font-bold text-slate-800">${escapeHTML(displayName)}</div>
-                        ${kelas ? `<div class="text-[11px] text-slate-400">${escapeHTML(kelas)}</div>` : ""}
-                    </td>
-                    <td>
-                        ${examUrl
-                            ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">✓ Tautan Siap</span>`
-                            : `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">! Belum Ada Link</span>`
-                        }
-                    </td>
-                    <td>
-                        ${token
-                            ? `<span class="font-mono font-extrabold text-xs px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">${escapeHTML(token)}</span>`
-                            : `<span class="text-[11px] font-semibold text-slate-400 italic">Belum set</span>`
-                        }
-                    </td>
-                    <td>
-                        ${isActive
-                            ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>AKTIF</span>`
-                            : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>NONAKTIF</span>`
-                        }
-                    </td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = rowsHTML;
-
-        executiveState.submittedEmailsSet = teachers;
-        executiveState.activeTeachersCount = teachers.size;
-        executiveState.totalExamsCount = total;
-        executiveState.fullyReadyExamsCount = fullyReadyCount;
-        executiveState.activeExamsCount = activeCount;
-        renderTeacherAndExamRecap();
-    });
-}
-
-/* =========================================================
-   READ-ONLY LISTENER: KEHADIRAN, FILTER KELAS & REKAP RUANG
+   RENDER KEHADIRAN, FILTER KELAS & REKAP RUANG + PENGAWAS
 ========================================================= */
 function updateClassDropdown(classSet) {
     const select = document.getElementById("attendanceClassFilter");
@@ -1229,109 +1532,142 @@ function updateClassDropdown(classSet) {
     }
 }
 
-function listenAttendanceMonitor() {
-    db.collection("attendances").onSnapshot(snapshot => {
-        const tbody = document.getElementById("attendanceBody");
-        const roomGrid = document.getElementById("roomGrid");
-        const totalRuangBadge = document.getElementById("totalRuangBadge");
-        const attendanceBadge = document.getElementById("attendanceBadge");
-        const kpiHadir = document.getElementById("kpiHadir");
-        const kpiHadirSub = document.getElementById("kpiHadirSub");
-        const kpiTemuan = document.getElementById("kpiTemuan");
-        const kpiTemuanSub = document.getElementById("kpiTemuanSub");
-        const kpiKeamananIcon = document.getElementById("kpiKeamananIcon");
+function renderAttendanceAndRooms() {
+    const tbody = document.getElementById("attendanceBody");
+    const roomGrid = document.getElementById("roomGrid");
+    const totalRuangBadge = document.getElementById("totalRuangBadge");
+    const rekapRuangSubtitle = document.getElementById("rekapRuangSubtitle");
+    const attendanceBadge = document.getElementById("attendanceBadge");
+    const kpiHadir = document.getElementById("kpiHadir");
+    const kpiHadirSub = document.getElementById("kpiHadirSub");
+    const kpiTemuan = document.getElementById("kpiTemuan");
+    const kpiTemuanSub = document.getElementById("kpiTemuanSub");
+    const kpiKeamananIcon = document.getElementById("kpiKeamananIcon");
 
-        const total = snapshot.size;
-        kpiHadir.textContent = `${total}`;
-        attendanceBadge.textContent = `${total} Peserta`;
+    const records = [...executiveState.attendanceDocs];
+    const total = records.length;
+    kpiHadir.textContent = `${total}`;
+    attendanceBadge.textContent = `${total} Peserta`;
 
-        if (total === 0) {
-            kpiHadirSub.textContent = "0 via Aplikasi Resmi";
-            kpiTemuan.textContent = "0";
-            kpiTemuanSub.textContent = "Belum ada peserta masuk";
-            totalRuangBadge.textContent = "0 Ruang Aktif";
-            updateClassDropdown(new Set());
-            roomGrid.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-slate-400 italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">Menunggu data presensi masuk dari ruangan...</div>`;
-            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400 italic">Belum ada data presensi yang masuk...</td></tr>`;
-            return;
+    // Siapkan peta ruang dari jadwal resmi + pengawas sesi referensi
+    const roomsMeta = Array.isArray(executiveState.scheduleData?.rooms) ? executiveState.scheduleData.rooms : [];
+    const { slot: refSlot } = getReferenceScheduleSlot();
+    const proctorByRoom = new Map();
+    if (refSlot && Array.isArray(refSlot.pengawas)) {
+        refSlot.pengawas.forEach(p => {
+            proctorByRoom.set(Number(p.ruang), p.nama);
+        });
+    }
+
+    if (refSlot && rekapRuangSubtitle) {
+        rekapRuangSubtitle.textContent = `Menampilkan distribusi peserta & pengawas sesi ${refSlot.mapel} (${refSlot.shortDateLabel || refSlot.date} · ${refSlot.timeLabel}).`;
+    }
+
+    const roomStatsMap = new Map();
+    roomsMeta.forEach(rm => {
+        const rNo = Number(rm.room);
+        roomStatsMap.set(`room_${rNo}`, {
+            key: `room_${rNo}`,
+            label: rm.label || `Ruang ${rNo} (${rm.kelas})`,
+            roomNumber: rNo,
+            total: 0,
+            official: 0,
+            warnings: 0,
+            proctor: proctorByRoom.get(rNo) || ""
+        });
+    });
+
+    records.sort((a, b) => {
+        const tA = a.checkin_time && typeof a.checkin_time.toDate === "function" ? a.checkin_time.toDate().getTime() : (new Date(a.checkin_time).getTime() || 0);
+        const tB = b.checkin_time && typeof b.checkin_time.toDate === "function" ? b.checkin_time.toDate().getTime() : (new Date(b.checkin_time).getTime() || 0);
+        return tB - tA;
+    });
+
+    let officialCount = 0;
+    let warningCount = 0;
+    const classSet = new Set();
+    let rowsHTML = "";
+
+    records.forEach(data => {
+        const perangkat = data.perangkat || {};
+        const isOfficial = Boolean(perangkat.isOfficialApp || perangkat.is_official_app);
+        const os = perangkat.osDetail || perangkat.os_detail || "Tidak diketahui";
+        const distance = Number(data.distance_meters || 0);
+        const isOutOfRange = distance > 200;
+        const hasWarning = !isOfficial || isOutOfRange;
+
+        if (isOfficial) officialCount++;
+        if (hasWarning) warningCount++;
+
+        const kelasRaw = (data.kelas || data.class || "").trim();
+        if (kelasRaw) {
+            classSet.add(kelasRaw);
         }
 
-        const records = [];
-        snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+        const roomDesc = normalizeRoomDescriptor(data.ruang, kelasRaw);
+        if (!roomStatsMap.has(roomDesc.key)) {
+            roomStatsMap.set(roomDesc.key, {
+                key: roomDesc.key,
+                label: roomDesc.label,
+                roomNumber: roomDesc.roomNumber,
+                total: 0,
+                official: 0,
+                warnings: 0,
+                proctor: proctorByRoom.get(roomDesc.roomNumber) || ""
+            });
+        }
 
-        records.sort((a, b) => {
-            const tA = a.checkin_time && typeof a.checkin_time.toDate === "function" ? a.checkin_time.toDate().getTime() : (new Date(a.checkin_time).getTime() || 0);
-            const tB = b.checkin_time && typeof b.checkin_time.toDate === "function" ? b.checkin_time.toDate().getTime() : (new Date(b.checkin_time).getTime() || 0);
-            return tB - tA;
-        });
+        const rEntry = roomStatsMap.get(roomDesc.key);
+        rEntry.total++;
+        if (isOfficial) rEntry.official++;
+        if (hasWarning) rEntry.warnings++;
 
-        let officialCount = 0;
-        let warningCount = 0;
-        const roomStats = {};
-        const classSet = new Set();
-        let rowsHTML = "";
-
-        records.forEach(data => {
-            const perangkat = data.perangkat || {};
-            const isOfficial = Boolean(perangkat.isOfficialApp || perangkat.is_official_app);
-            const os = perangkat.osDetail || perangkat.os_detail || "Tidak diketahui";
-            const distance = Number(data.distance_meters || 0);
-            const isOutOfRange = distance > 200;
-            const hasWarning = !isOfficial || isOutOfRange;
-
-            if (isOfficial) officialCount++;
-            if (hasWarning) warningCount++;
-
-            const kelasRaw = (data.kelas || data.class || "").trim();
-            if (kelasRaw) {
-                classSet.add(kelasRaw);
+        let time = "-";
+        if (data.checkin_time) {
+            const date = typeof data.checkin_time.toDate === "function" ? data.checkin_time.toDate() : new Date(data.checkin_time);
+            if (!isNaN(date.getTime())) {
+                time = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
             }
+        }
 
-            const ruangName = (data.ruang || "Tanpa Ruang").trim();
-            if (!roomStats[ruangName]) {
-                roomStats[ruangName] = { total: 0, official: 0, warnings: 0 };
-            }
-            roomStats[ruangName].total++;
-            if (isOfficial) roomStats[ruangName].official++;
-            if (hasWarning) roomStats[ruangName].warnings++;
+        rowsHTML += `
+            <tr data-status="${hasWarning ? 'warning' : 'official'}"
+                data-kelas="${escapeHTML(kelasRaw.toLowerCase())}">
+                <td class="font-mono text-slate-400 font-semibold">${time}</td>
+                <td class="font-mono font-extrabold text-slate-800">${escapeHTML(data.nis || "-")}</td>
+                <td class="font-bold text-slate-800">${escapeHTML(data.nama || "-")}</td>
+                <td>
+                    ${kelasRaw
+                        ? `<span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold text-[11px]">${escapeHTML(kelasRaw)}</span>`
+                        : `<span class="text-slate-400 text-[11px]">-</span>`
+                    }
+                </td>
+                <td><span class="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[11px]">${escapeHTML(roomDesc.label)}</span></td>
+                <td>
+                    ${isOfficial
+                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>App Resmi (${escapeHTML(os)})</span>`
+                        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Browser/PC (${escapeHTML(os)})</span>`
+                    }
+                </td>
+                <td class="font-mono font-extrabold text-indigo-600">${escapeHTML(data.exam_token || "-")}</td>
+                <td class="font-mono font-bold ${isOutOfRange ? "text-red-600" : "text-emerald-600"}">
+                    ${distance}m ${isOutOfRange ? "⚠️" : ""}
+                </td>
+            </tr>
+        `;
+    });
 
-            let time = "-";
-            if (data.checkin_time) {
-                const date = typeof data.checkin_time.toDate === "function" ? data.checkin_time.toDate() : new Date(data.checkin_time);
-                if (!isNaN(date.getTime())) {
-                    time = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-                }
-            }
+    updateClassDropdown(classSet);
 
-            rowsHTML += `
-                <tr data-status="${hasWarning ? 'warning' : 'official'}"
-                    data-kelas="${escapeHTML(kelasRaw.toLowerCase())}">
-                    <td class="font-mono text-slate-400 font-semibold">${time}</td>
-                    <td class="font-mono font-extrabold text-slate-800">${escapeHTML(data.nis || "-")}</td>
-                    <td class="font-bold text-slate-800">${escapeHTML(data.nama || "-")}</td>
-                    <td>
-                        ${kelasRaw
-                            ? `<span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold text-[11px]">${escapeHTML(kelasRaw)}</span>`
-                            : `<span class="text-slate-400 text-[11px]">-</span>`
-                        }
-                    </td>
-                    <td><span class="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[11px]">${escapeHTML(ruangName)}</span></td>
-                    <td>
-                        ${isOfficial
-                            ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>App Resmi (${escapeHTML(os)})</span>`
-                            : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Browser/PC (${escapeHTML(os)})</span>`
-                        }
-                    </td>
-                    <td class="font-mono font-extrabold text-indigo-600">${escapeHTML(data.exam_token || "-")}</td>
-                    <td class="font-mono font-bold ${isOutOfRange ? "text-red-600" : "text-emerald-600"}">
-                        ${distance}m ${isOutOfRange ? "⚠️" : ""}
-                    </td>
-                </tr>
-            `;
-        });
-
-        updateClassDropdown(classSet);
-
+    if (total === 0) {
+        kpiHadirSub.textContent = "0 via Aplikasi Resmi";
+        kpiTemuan.textContent = "0";
+        kpiTemuan.className = "text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono";
+        kpiTemuanSub.textContent = "Belum ada peserta masuk";
+        kpiTemuanSub.className = "text-[11px] text-emerald-600 font-semibold mt-1";
+        kpiKeamananIcon.className = "w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center";
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400 italic">Belum ada data presensi yang masuk...</td></tr>`;
+    } else {
         kpiHadirSub.textContent = `${officialCount} via Aplikasi Resmi`;
         kpiTemuan.textContent = `${warningCount}`;
 
@@ -1347,32 +1683,109 @@ function listenAttendanceMonitor() {
             kpiKeamananIcon.className = "w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center";
         }
 
-        const sortedRooms = Object.keys(roomStats).sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-        totalRuangBadge.textContent = `${sortedRooms.length} Ruang Aktif`;
+        tbody.innerHTML = rowsHTML;
+    }
 
-        roomGrid.innerHTML = sortedRooms.map(ruang => {
-            const info = roomStats[ruang];
+    const sortedRoomList = Array.from(roomStatsMap.values()).sort((a, b) => {
+        if (a.roomNumber !== b.roomNumber) return a.roomNumber - b.roomNumber;
+        return a.label.localeCompare(b.label, "id", { numeric: true });
+    });
+
+    const activeRoomsCount = sortedRoomList.filter(r => r.total > 0).length;
+    totalRuangBadge.textContent = roomsMeta.length > 0
+        ? `${activeRoomsCount} / ${sortedRoomList.length} Ruang Terisi`
+        : `${activeRoomsCount} Ruang Aktif`;
+
+    if (sortedRoomList.length === 0) {
+        roomGrid.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-slate-400 italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">Menunggu data presensi masuk dari ruangan...</div>`;
+    } else {
+        roomGrid.innerHTML = sortedRoomList.map(info => {
+            const hasStudents = info.total > 0;
+            const cardBorder = info.warnings > 0
+                ? "border-amber-300 bg-amber-50/30"
+                : (hasStudents ? "border-teal-200/80 bg-white" : "border-slate-200/80 bg-slate-50/70");
+
+            const statusChip = info.warnings > 0
+                ? `<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold">${info.warnings} Peringatan</span>`
+                : (hasStudents
+                    ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">Kondusif</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-500 text-[10px] font-bold">Kosong</span>`);
+
             return `
-                <div class="p-4 rounded-2xl bg-slate-50/90 border ${info.warnings > 0 ? "border-amber-300 bg-amber-50/30" : "border-slate-200"} flex flex-col justify-between gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">${escapeHTML(ruang)}</span>
-                        ${info.warnings > 0
-                            ? `<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold">${info.warnings} Peringatan</span>`
-                            : `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">Kondusif</span>`
-                        }
+                <div class="p-4 rounded-2xl border ${cardBorder} flex flex-col justify-between gap-2.5 transition">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="text-xs font-extrabold text-slate-800 tracking-wide">${escapeHTML(info.label)}</span>
+                        ${statusChip}
                     </div>
                     <div class="flex items-baseline justify-between pt-2 border-t border-slate-200/70">
                         <div>
-                            <span class="text-2xl font-extrabold text-slate-900 font-mono">${info.total}</span>
+                            <span class="text-2xl font-extrabold ${hasStudents ? "text-slate-900" : "text-slate-400"} font-mono">${info.total}</span>
                             <span class="text-xs text-slate-500 font-semibold ml-1">Siswa</span>
                         </div>
                         <span class="text-[11px] text-slate-500 font-medium">${info.official}/${info.total} App Resmi</span>
                     </div>
+                    ${info.proctor ? `
+                        <div class="pt-1.5 border-t border-slate-100 text-[11px] text-slate-500 truncate" title="Pengawas: ${escapeHTML(info.proctor)}">
+                            <span class="font-bold text-teal-700">Pengawas:</span> ${escapeHTML(info.proctor)}
+                        </div>
+                    ` : ""}
                 </div>
             `;
         }).join("");
+    }
+}
 
-        tbody.innerHTML = rowsHTML;
+/* =========================================================
+   READ-ONLY LISTENERS (SETTINGS, SCHEDULE, EXAMS, ATTENDANCES)
+========================================================= */
+function listenTargetGuruSetting() {
+    db.collection("settings").doc("pas").onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            executiveState.masterTeachers = Array.isArray(data.daftar_guru) ? data.daftar_guru : [];
+            executiveState.targetTotalGuru = executiveState.masterTeachers.length > 0
+                ? executiveState.masterTeachers.length
+                : (Number(data.total_guru) || 0);
+        } else {
+            executiveState.masterTeachers = [];
+            executiveState.targetTotalGuru = 0;
+        }
+        renderTeacherAndExamRecap();
+    }, error => {
+        console.error("Error listening settings:", error);
+        const tbody = document.getElementById("missingTeachersBody");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-600 font-semibold">Gagal membaca data master guru: ${escapeHTML(error.message)}</td></tr>`;
+        }
+    });
+}
+
+function listenOfficialScheduleSetting() {
+    db.collection("settings").doc("schedule").onSnapshot(doc => {
+        executiveState.scheduleData = doc.exists ? doc.data() : null;
+        renderScheduleSummaryBanner();
+        renderAttendanceAndRooms();
+        renderExamReadinessTable();
+    }, error => {
+        console.error("Error listening schedule:", error);
+    });
+}
+
+function listenExamReadiness() {
+    db.collection("exams").onSnapshot(snapshot => {
+        const docs = [];
+        snapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+        executiveState.examDocs = docs;
+        renderExamReadinessTable();
+    });
+}
+
+function listenAttendanceMonitor() {
+    db.collection("attendances").onSnapshot(snapshot => {
+        const records = [];
+        snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+        executiveState.attendanceDocs = records;
+        renderAttendanceAndRooms();
     });
 }
 
@@ -1484,6 +1897,12 @@ function setupSidebarNavigation() {
     sections.forEach(section => scrollObserver.observe(section));
 }
 
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+        window.closeScheduleModal();
+    }
+});
+
 let initialized = false;
 function initExecutiveMonitor() {
     if (initialized) return;
@@ -1492,6 +1911,7 @@ function initExecutiveMonitor() {
     setupExecutiveFilters();
     setupSidebarNavigation();
     listenTargetGuruSetting();
+    listenOfficialScheduleSetting();
     listenExamReadiness();
     listenAttendanceMonitor();
 
