@@ -464,12 +464,16 @@
 
                     <div>
 
-                        <div class="flex items-center gap-2 mb-3">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
 
-                            <span class="w-2.5 h-2.5 bg-green-300 rounded-full pulse-dot"></span>
-
-                            <span class="text-sm font-semibold text-indigo-100">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-bold text-white">
+                                <span class="w-2 h-2 bg-green-300 rounded-full pulse-dot"></span>
                                 Sistem Online
+                            </span>
+
+                            <span id="scheduleSyncBadge"
+                                  class="hidden inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950/35 border border-white/20 text-xs font-bold text-sky-100">
+                                📅 Jadwal Tersinkron
                             </span>
 
                         </div>
@@ -485,23 +489,33 @@
                         </h1>
 
                         <p class="text-indigo-100 mt-2 max-w-xl text-sm sm:text-base">
-                            Buat, pantau, dan kelola ujian siswa dari satu tempat.
+                            Buat, pantau, dan kelola ujian siswa yang otomatis tersinkron dengan jadwal sekolah.
                         </p>
 
                     </div>
 
 
-                    <div class="text-left lg:text-right">
+                    <div class="text-left lg:text-right flex flex-col lg:items-end gap-2">
 
-                        <div
-                            id="currentDate"
-                            class="text-sm font-semibold text-white">
-                            -
+                        <div>
+                            <div
+                                id="currentDate"
+                                class="text-sm font-semibold text-white">
+                                -
+                            </div>
+
+                            <div class="text-xs text-indigo-100 mt-0.5">
+                                Portal Guru A2S CBT
+                            </div>
                         </div>
 
-                        <div class="text-xs text-indigo-100 mt-1">
-                            Portal Guru A2S CBT
-                        </div>
+                        <button
+                            id="btnOpenFullSchedule"
+                            type="button"
+                            onclick="openFullScheduleModal()"
+                            class="hidden inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-bold text-white transition">
+                            📅 Lihat Jadwal Ujian & Pengawas
+                        </button>
 
                     </div>
 
@@ -509,6 +523,43 @@
 
             </div>
 
+        </div>
+
+
+        <!-- JADWAL MENGAWAS GURU (AUTO-DETEKSI DARI EXCEL JADWAL) -->
+        <div id="proctorScheduleCard"
+             class="hidden mb-7 bg-white dark:bg-slate-900 border border-sky-200/80 dark:border-sky-900/50 rounded-3xl p-5 shadow-sm fade-in">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 flex items-center justify-center text-xl">
+                        🏫
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-black text-base text-slate-900 dark:text-white">
+                                Jadwal Tugas Mengawas Anda
+                            </h3>
+                            <span id="proctorCountBadge"
+                                  class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+                                0 Sesi
+                            </span>
+                        </div>
+                        <p id="proctorTeacherLabel" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Tersinkron otomatis dari jadwal PAS sekolah.
+                        </p>
+                    </div>
+                </div>
+
+                <button type="button"
+                        onclick="openFullScheduleModal()"
+                        class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 text-xs font-bold transition">
+                    Semua Jadwal ↗
+                </button>
+            </div>
+
+            <div id="proctorSlotsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            </div>
         </div>
 
 
@@ -681,7 +732,7 @@
                     <input
                         id="searchInput"
                         type="text"
-                        placeholder="Cari mata pelajaran atau kelas..."
+                        placeholder="Cari mata pelajaran, kelas, atau hari ujian..."
                         class="w-full pl-11 pr-4 py-3 rounded-xl
                                bg-slate-50 dark:bg-slate-800
                                border border-transparent
@@ -804,9 +855,9 @@
                bg-white dark:bg-slate-900
                rounded-3xl shadow-2xl
                border border-slate-200 dark:border-slate-800
-               overflow-hidden">
+               overflow-hidden max-h-[92vh] flex flex-col">
 
-        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
 
             <div class="flex items-center justify-between">
 
@@ -817,7 +868,7 @@
                     </h2>
 
                     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Masukkan informasi ujian Anda.
+                        Pilih dari jadwal resmi atau masukkan informasi ujian Anda.
                     </p>
 
                 </div>
@@ -837,7 +888,42 @@
 
         <form
             id="examForm"
-            class="p-6 space-y-5">
+            class="p-6 space-y-4 overflow-y-auto custom-scroll">
+
+            <!-- PILIHAN JADWAL AUTO-SINKRON -->
+            <div id="scheduleSelectorWrapper" class="hidden">
+
+                <label class="block text-sm font-bold mb-2 text-indigo-600 dark:text-indigo-400">
+                    📅 Pilih Sesi dari Jadwal Resmi (Auto-Sinkron)
+                </label>
+
+                <select
+                    id="scheduleSlotSelect"
+                    onchange="handleScheduleSlotChange(this.value)"
+                    class="w-full px-4 py-3 rounded-xl
+                           border-2 border-indigo-200 dark:border-indigo-900/70
+                           bg-indigo-50/60 dark:bg-indigo-950/30
+                           text-slate-800 dark:text-slate-100
+                           text-sm font-semibold
+                           outline-none
+                           focus:border-indigo-500
+                           focus:ring-4 focus:ring-indigo-500/10">
+                    <option value="">-- Pilih Mata Pelajaran Sesuai Jadwal --</option>
+                </select>
+
+                <!-- PREVIEW WAKTU UJIAN TERPILIH -->
+                <div id="selectedSchedulePreview"
+                     class="hidden mt-2.5 px-3.5 py-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 flex items-center justify-between gap-2 text-xs">
+                    <span class="font-bold text-sky-800 dark:text-sky-200" id="selectedScheduleText">
+                        -
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md bg-sky-600 text-white font-extrabold text-[10px]">
+                        TERJADWAL
+                    </span>
+                </div>
+
+            </div>
+
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
@@ -888,14 +974,14 @@
             <div>
 
                 <label class="block text-sm font-bold mb-2">
-                    URL Ujian
+                    URL Ujian (Google Form)
                 </label>
 
                 <input
                     id="examUrlInput"
                     type="url"
                     required
-                    placeholder="https://..."
+                    placeholder="https://docs.google.com/forms/..."
                     class="w-full px-4 py-3 rounded-xl
                            border border-slate-200 dark:border-slate-700
                            bg-white dark:bg-slate-950
@@ -943,8 +1029,7 @@
                         </p>
 
                         <p class="text-indigo-600/80 dark:text-indigo-300/70 mt-1">
-                            Ujian akan dibuat dalam keadaan aktif.
-                            Token ujian dapat diatur oleh Admin Proktor.
+                            Ujian akan otomatis tersinkron ke dashboard Admin Proktor untuk pemasangan token & jadwal buka/tutup ujian.
                         </p>
 
                     </div>
@@ -1025,6 +1110,12 @@
                         -
                     </p>
 
+                    <p
+                        id="detailSchedule"
+                        class="hidden text-xs font-bold text-sky-600 dark:text-sky-400 mt-2">
+                        -
+                    </p>
+
                 </div>
 
                 <button
@@ -1096,6 +1187,51 @@
 
             </div>
 
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- FULL SCHEDULE MODAL -->
+<!-- ========================================================= -->
+
+<div
+    id="fullScheduleModal"
+    class="hidden fixed inset-0 z-50 modal-bg
+           items-center justify-center p-4">
+
+    <div
+        class="w-full max-w-3xl
+               bg-white dark:bg-slate-900
+               rounded-3xl shadow-2xl
+               border border-slate-200 dark:border-slate-800
+               overflow-hidden max-h-[88vh] flex flex-col">
+
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
+
+            <div>
+                <p class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    Jadwal Resmi Sekolah
+                </p>
+                <h2 id="fullScheduleTitle" class="text-xl font-black mt-0.5">
+                    Jadwal Ujian & Pengawas Ruang
+                </h2>
+            </div>
+
+            <button
+                type="button"
+                onclick="closeFullScheduleModal()"
+                class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="fullScheduleBody" class="p-6 overflow-y-auto custom-scroll space-y-4 text-sm">
+            <p class="text-slate-400 text-center py-8">Memuat jadwal...</p>
         </div>
 
     </div>
@@ -1201,6 +1337,12 @@
     let currentUser = null;
     let deleteTargetId = null;
     let unsubscribeExams = null;
+    let unsubscribeSchedule = null;
+    let unsubscribePasMaster = null;
+
+    let officialScheduleData = null;
+    let selectedScheduleSlot = null;
+    let masterTeachersList = [];
 
 
     // =========================================================
@@ -1249,6 +1391,8 @@
             updateGreeting();
             updateDate();
 
+            listenOfficialSchedule();
+            listenMasterTeacherInfo();
             loadTeacherExams(user.uid);
 
         } else {
@@ -1259,6 +1403,14 @@
                 unsubscribeExams();
                 unsubscribeExams = null;
             }
+            if (unsubscribeSchedule) {
+                unsubscribeSchedule();
+                unsubscribeSchedule = null;
+            }
+            if (unsubscribePasMaster) {
+                unsubscribePasMaster();
+                unsubscribePasMaster = null;
+            }
 
             loginSection.classList.remove("hidden");
             dashboardSection.classList.add("hidden");
@@ -1266,6 +1418,301 @@
         }
 
     });
+
+
+    // =========================================================
+    // SINKRONISASI JADWAL RESMI (DARI SETTINGS/SCHEDULE)
+    // =========================================================
+
+    function listenOfficialSchedule() {
+
+        if (unsubscribeSchedule) {
+            unsubscribeSchedule();
+        }
+
+        unsubscribeSchedule = db
+            .collection("settings")
+            .doc("schedule")
+            .onSnapshot(
+                doc => {
+
+                    officialScheduleData = doc.exists ? doc.data() : null;
+
+                    updateScheduleUI();
+                    renderTeacherProctorSchedule();
+
+                },
+                error => {
+                    console.error("Error listening schedule:", error);
+                }
+            );
+
+    }
+
+    function listenMasterTeacherInfo() {
+
+        if (unsubscribePasMaster) {
+            unsubscribePasMaster();
+        }
+
+        unsubscribePasMaster = db
+            .collection("settings")
+            .doc("pas")
+            .onSnapshot(
+                doc => {
+                    if (doc.exists && Array.isArray(doc.data().daftar_guru)) {
+                        masterTeachersList = doc.data().daftar_guru;
+                    } else {
+                        masterTeachersList = [];
+                    }
+                    renderTeacherProctorSchedule();
+                },
+                error => {
+                    console.error("Error listening pas master:", error);
+                }
+            );
+
+    }
+
+    function updateScheduleUI() {
+
+        const slots = Array.isArray(officialScheduleData?.slots) ? officialScheduleData.slots : [];
+        const hasSchedule = slots.length > 0;
+
+        const syncBadge = document.getElementById("scheduleSyncBadge");
+        const fullBtn = document.getElementById("btnOpenFullSchedule");
+        const selectorWrapper = document.getElementById("scheduleSelectorWrapper");
+        const slotSelect = document.getElementById("scheduleSlotSelect");
+
+        if (syncBadge) {
+            syncBadge.classList.toggle("hidden", !hasSchedule);
+            if (hasSchedule) {
+                syncBadge.textContent = `📅 Jadwal Tersinkron (${slots.length} Sesi)`;
+            }
+        }
+
+        if (fullBtn) {
+            fullBtn.classList.toggle("hidden", !hasSchedule);
+        }
+
+        if (selectorWrapper && slotSelect) {
+            selectorWrapper.classList.toggle("hidden", !hasSchedule);
+
+            if (hasSchedule) {
+                let optionsHTML = `<option value="">-- Pilih Mata Pelajaran Sesuai Jadwal --</option>`;
+
+                slots.forEach((slot, idx) => {
+                    const label = `${slot.shortDateLabel || slot.date} (${slot.timeLabel}) — ${slot.mapel} [Kelas ${slot.kelas}]`;
+                    optionsHTML += `<option value="${idx}">${escapeHTML(label)}</option>`;
+                });
+
+                optionsHTML += `<option value="manual">✏️ Input Manual / Ujian Susulan</option>`;
+                slotSelect.innerHTML = optionsHTML;
+            }
+        }
+
+    }
+
+    function handleScheduleSlotChange(val) {
+
+        const slots = Array.isArray(officialScheduleData?.slots) ? officialScheduleData.slots : [];
+        const mapelEl = document.getElementById("mapelInput");
+        const kelasEl = document.getElementById("kelasInput");
+        const previewEl = document.getElementById("selectedSchedulePreview");
+        const previewTextEl = document.getElementById("selectedScheduleText");
+
+        if (val === "" || val === "manual") {
+            selectedScheduleSlot = null;
+            previewEl.classList.add("hidden");
+            if (val === "manual") {
+                mapelEl.focus();
+            }
+            return;
+        }
+
+        const idx = parseInt(val, 10);
+        const slot = slots[idx];
+
+        if (!slot) {
+            selectedScheduleSlot = null;
+            previewEl.classList.add("hidden");
+            return;
+        }
+
+        selectedScheduleSlot = slot;
+        mapelEl.value = slot.mapel || "";
+        kelasEl.value = slot.kelas || "";
+
+        const label = `${slot.shortDateLabel || slot.date} • ${slot.timeLabel}`;
+        previewTextEl.textContent = `📅 Waktu Ujian: ${label}`;
+        previewEl.classList.remove("hidden");
+
+    }
+
+    function normalizePersonName(name) {
+        return String(name || "")
+            .toLowerCase()
+            .replace(/,.*$/, "") // buang gelar setelah koma (S.Pd, S.Kom, dll)
+            .replace(/\b(drs|dr|ir|h|hj|s\.pd|s\.kom|s\.t|s\.ag|s\.si|m\.pd|m\.m|gr)\b\.?/gi, "")
+            .replace(/[^a-z\s]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function resolveCurrentTeacherIdentity() {
+        if (!currentUser?.email) return { displayName: "", tokens: [] };
+
+        const emailLower = currentUser.email.toLowerCase();
+        const foundInMaster = masterTeachersList.find(g => (g.email || "").toLowerCase() === emailLower);
+
+        if (foundInMaster && foundInMaster.nama) {
+            const clean = normalizePersonName(foundInMaster.nama);
+            const tokens = clean.split(" ").filter(t => t.length >= 3);
+            return { displayName: foundInMaster.nama, tokens };
+        }
+
+        // Fallback dari prefix email (misal: ronal29@guru... -> ronal)
+        const prefix = emailLower.split("@")[0].replace(/[0-9._-]+/g, " ").trim();
+        const tokens = prefix.split(" ").filter(t => t.length >= 4);
+        return { displayName: prefix, tokens };
+    }
+
+    function renderTeacherProctorSchedule() {
+
+        const card = document.getElementById("proctorScheduleCard");
+        const grid = document.getElementById("proctorSlotsGrid");
+        const countBadge = document.getElementById("proctorCountBadge");
+        const teacherLabel = document.getElementById("proctorTeacherLabel");
+
+        const slots = Array.isArray(officialScheduleData?.slots) ? officialScheduleData.slots : [];
+        if (!card || !grid || !slots.length) {
+            card?.classList.add("hidden");
+            return;
+        }
+
+        const { displayName, tokens } = resolveCurrentTeacherIdentity();
+        if (!tokens.length) {
+            card.classList.add("hidden");
+            return;
+        }
+
+        const myDuties = [];
+
+        slots.forEach(slot => {
+            (slot.pengawas || []).forEach(p => {
+                const proctorClean = normalizePersonName(p.nama);
+                if (!proctorClean) return;
+
+                const isMatch = tokens.every(tok => proctorClean.includes(tok)) ||
+                    (tokens.length >= 2 && tokens.slice(0, 2).every(tok => proctorClean.includes(tok)));
+
+                if (isMatch) {
+                    myDuties.push({
+                        date: slot.date,
+                        dateLabel: slot.shortDateLabel || slot.date,
+                        timeLabel: slot.timeLabel,
+                        mapel: slot.mapel,
+                        ruang: p.ruang,
+                        kelas: p.kelas,
+                        proctorName: p.nama
+                    });
+                }
+            });
+        });
+
+        if (!myDuties.length) {
+            card.classList.add("hidden");
+            return;
+        }
+
+        countBadge.textContent = `${myDuties.length} Sesi`;
+        teacherLabel.textContent = `Terdeteksi untuk ${displayName || myDuties[0].proctorName}`;
+
+        grid.innerHTML = myDuties.map(d => `
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white text-xs font-extrabold">
+                        Ruang ${escapeHTML(d.ruang)} (${escapeHTML(d.kelas)})
+                    </span>
+                    <span class="text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                        ${escapeHTML(d.dateLabel)}
+                    </span>
+                </div>
+                <div class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">
+                    ${escapeHTML(d.mapel)}
+                </div>
+                <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    ⏰ Pukul ${escapeHTML(d.timeLabel)} WIB
+                </div>
+            </div>
+        `).join("");
+
+        card.classList.remove("hidden");
+
+    }
+
+    function openFullScheduleModal() {
+
+        const modal = document.getElementById("fullScheduleModal");
+        const titleEl = document.getElementById("fullScheduleTitle");
+        const bodyEl = document.getElementById("fullScheduleBody");
+
+        const slots = Array.isArray(officialScheduleData?.slots) ? officialScheduleData.slots : [];
+        if (!modal || !slots.length) return;
+
+        titleEl.textContent = officialScheduleData.title || "Jadwal Ujian & Pengawas Ruang";
+
+        const grouped = new Map();
+        slots.forEach(s => {
+            const key = s.dateRaw || s.date;
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key).push(s);
+        });
+
+        let html = "";
+        grouped.forEach((daySlots, dateHeading) => {
+            html += `
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+                    <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2.5 font-extrabold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>${escapeHTML(dateHeading)}</span>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">${daySlots.length} Sesi</span>
+                    </div>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+            `;
+
+            daySlots.forEach(s => {
+                const pengawasHTML = (s.pengawas || [])
+                    .map(p => `<span class="inline-block px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300"><b>R.${p.ruang}</b> (${escapeHTML(p.kelas)}): ${escapeHTML(p.nama)}</span>`)
+                    .join(" ");
+
+                html += `
+                    <div class="p-4 space-y-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 font-bold text-xs">${escapeHTML(s.timeLabel)}</span>
+                                <span class="font-black text-slate-900 dark:text-white">${escapeHTML(s.mapel)}</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold">Kelas ${escapeHTML(s.kelas)}</span>
+                        </div>
+                        ${pengawasHTML ? `<div class="flex flex-wrap gap-1.5 pt-1">${pengawasHTML}</div>` : ""}
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+        });
+
+        bodyEl.innerHTML = html;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+
+    }
+
+    function closeFullScheduleModal() {
+        const modal = document.getElementById("fullScheduleModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
 
 
     // =========================================================
@@ -1436,9 +1883,13 @@
             const kelas =
                 String(exam.kelas || "").toLowerCase();
 
+            const sched =
+                String(exam.schedule_label || "").toLowerCase();
+
             const matchesSearch =
                 mapel.includes(searchTerm) ||
-                kelas.includes(searchTerm);
+                kelas.includes(searchTerm) ||
+                sched.includes(searchTerm);
 
             return matchesFilter && matchesSearch;
 
@@ -1504,6 +1955,7 @@
 
         const mapel = exam.mapel || "Tanpa nama";
         const kelas = exam.kelas || "-";
+        const scheduleLabel = exam.schedule_label || "";
 
         const token =
             exam.token && exam.token.trim()
@@ -1537,7 +1989,7 @@
             </div>
 
 
-            <div class="flex items-start justify-between gap-3 mb-5">
+            <div class="flex items-start justify-between gap-3 mb-4">
 
                 <div class="flex items-center gap-3">
 
@@ -1545,7 +1997,7 @@
                                 bg-gradient-to-br from-indigo-500 to-sky-500
                                 text-white
                                 flex items-center justify-center
-                                font-black shadow-lg shadow-indigo-500/20">
+                                font-black shadow-lg shadow-indigo-500/20 shrink-0">
 
                         ${escapeHTML(initials)}
 
@@ -1570,7 +2022,7 @@
                     ${active ? "status-active" : "status-inactive"}
                     px-3 py-1.5 rounded-full
                     text-xs font-black
-                    inline-flex items-center gap-1.5
+                    inline-flex items-center gap-1.5 shrink-0
                 ">
 
                     <span class="w-1.5 h-1.5 rounded-full
@@ -1581,6 +2033,20 @@
 
                 </span>
 
+            </div>
+
+
+            <!-- SCHEDULE BADGE -->
+            <div class="mb-4">
+                ${
+                    scheduleLabel
+                    ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200/80 dark:border-sky-800/60 text-sky-700 dark:text-sky-300 text-xs font-bold">
+                        📅 ${escapeHTML(scheduleLabel)}
+                       </span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        ⏳ Menunggu sinkron jadwal
+                       </span>`
+                }
             </div>
 
 
@@ -1886,6 +2352,25 @@
         const spreadsheetUrl =
             document.getElementById("spreadsheetUrlInput").value.trim();
 
+        const schedulePayload = selectedScheduleSlot
+            ? {
+                schedule_date: selectedScheduleSlot.date || "",
+                schedule_day: selectedScheduleSlot.day || "",
+                schedule_start: selectedScheduleSlot.start || "",
+                schedule_end: selectedScheduleSlot.end || "",
+                schedule_label: `${selectedScheduleSlot.shortDateLabel || selectedScheduleSlot.date} • ${selectedScheduleSlot.timeLabel}`,
+                schedule_mapel: selectedScheduleSlot.mapel || mapel,
+                schedule_synced_version: officialScheduleData?.version_tag || Date.now()
+            }
+            : {
+                schedule_date: "",
+                schedule_day: "",
+                schedule_start: "",
+                schedule_end: "",
+                schedule_label: "",
+                schedule_mapel: ""
+            };
+
 
         try {
 
@@ -1913,6 +2398,8 @@
 
                 is_active: true,
 
+                ...schedulePayload,
+
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
 
             });
@@ -1921,9 +2408,13 @@
             closeAddModal();
 
             document.getElementById("examForm").reset();
+            selectedScheduleSlot = null;
+            document.getElementById("selectedSchedulePreview")?.classList.add("hidden");
 
             showToast(
-                "Ujian berhasil dibuat.",
+                selectedScheduleSlot
+                    ? "Ujian berhasil dibuat & tersinkron jadwal."
+                    : "Ujian berhasil dibuat.",
                 "success"
             );
 
@@ -2093,6 +2584,14 @@
         document.getElementById("detailToken").textContent =
             exam.token || "Menunggu Admin";
 
+        const detailScheduleEl = document.getElementById("detailSchedule");
+        if (exam.schedule_label) {
+            detailScheduleEl.textContent = `📅 Jadwal: ${exam.schedule_label}`;
+            detailScheduleEl.classList.remove("hidden");
+        } else {
+            detailScheduleEl.classList.add("hidden");
+        }
+
 
         const badge =
             document.getElementById("detailBadge");
@@ -2197,6 +2696,11 @@
 
     function openAddModal() {
 
+        selectedScheduleSlot = null;
+        const selectEl = document.getElementById("scheduleSlotSelect");
+        if (selectEl) selectEl.value = "";
+        document.getElementById("selectedSchedulePreview")?.classList.add("hidden");
+
         document
             .getElementById("examModal")
             .classList.remove("hidden");
@@ -2206,11 +2710,11 @@
             .classList.add("flex");
 
         setTimeout(() => {
-
-            document
-                .getElementById("mapelInput")
-                .focus();
-
+            if (selectEl && Array.isArray(officialScheduleData?.slots) && officialScheduleData.slots.length > 0) {
+                selectEl.focus();
+            } else {
+                document.getElementById("mapelInput").focus();
+            }
         }, 100);
 
     }
@@ -2588,6 +3092,17 @@
 
 
     document
+        .getElementById("fullScheduleModal")
+        .addEventListener("click", e => {
+
+            if (e.target.id === "fullScheduleModal") {
+                closeFullScheduleModal();
+            }
+
+        });
+
+
+    document
         .getElementById("deleteModal")
         .addEventListener("click", e => {
 
@@ -2608,6 +3123,7 @@
 
             closeAddModal();
             closeDetailModal();
+            closeFullScheduleModal();
             closeDeleteModal();
 
         }
