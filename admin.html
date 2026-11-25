@@ -869,15 +869,22 @@
 
                         <!-- TOKEN LIST -->
                         <div class="mt-6 pt-5 border-t border-slate-200">
-                            <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
                                 <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                                     Token Tersimpan
                                 </h3>
 
-                                <button onclick="handleBulkResetTokens()" type="button" class="danger-soft">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                    Reset Semua
-                                </button>
+                                <div class="flex items-center gap-1.5">
+                                    <button onclick="handleCopyActiveTokensWA()" type="button" class="emerald-soft" title="Salin format pesan WhatsApp untuk semua token ujian yang sedang aktif">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        Salin WA
+                                    </button>
+
+                                    <button onclick="handleBulkResetTokens()" type="button" class="danger-soft">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        Reset Semua
+                                    </button>
+                                </div>
                             </div>
 
                             <div id="tokenList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
@@ -1472,7 +1479,7 @@ const SUBJECT_ALIAS_GROUPS = [
     ["projek ipas", "ipas", "ipa", "ips"],
     ["mapel pilihan", "mata pelajaran pilihan", "pilihan"],
     ["dasar kejuruan", "dasar-dasar", "dasar program keahlian", "ddk", "dpk"],
-    ["konsentrasi keahlian", "kk", "produktif", "kejuruan xi"],
+    ["konsentrasi kejuruan", "kk", "produktif", "kejuruan xi"],
     ["penjaskes", "pjok", "penjas", "pendidikan jasmani", "olahraga"]
 ];
 
@@ -3039,6 +3046,73 @@ window.handleDeleteToken = async function(docId, tokenName) {
     } catch (error) {
         console.error(error);
         showToast("Gagal menghapus token: " + error.message, "error");
+    }
+};
+
+window.handleCopyActiveTokensWA = async function() {
+    // Filter hanya ujian yang AKTIF dan sudah memiliki TOKEN terisi
+    const activeTokenExams = latestExamRecords.filter(item =>
+        Boolean(item.isActive) && String(item.token || "").trim() !== ""
+    );
+
+    if (activeTokenExams.length === 0) {
+        showToast("Tidak ada ujian aktif yang memiliki token untuk disalin.", "error");
+        return;
+    }
+
+    // Urutkan berdasarkan jadwal sesi (jika ada), lalu berdasarkan nama mapel
+    const sorted = [...activeTokenExams].sort((a, b) => {
+        const keyA = a.scheduleDate ? `${a.scheduleDate}_${a.scheduleStart}` : "9999-99-99_99:99";
+        const keyB = b.scheduleDate ? `${b.scheduleDate}_${b.scheduleStart}` : "9999-99-99_99:99";
+        if (keyA !== keyB) return keyA.localeCompare(keyB);
+        return a.displayName.localeCompare(b.displayName, "id");
+    });
+
+    const todayLabel = new Date().toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+    const lines = [];
+    lines.push("*INFO TOKEN UJIAN — A2S CBT*");
+    lines.push(`📅 ${todayLabel}`);
+    lines.push("");
+    lines.push("Assalamu’alaikum Wr. Wb. Bapak/Ibu Pengawas Ruang, berikut kode token ujian yang sedang *AKTIF*:");
+    lines.push("");
+
+    sorted.forEach((item, index) => {
+        const mapelName = item.displayName || "Ujian";
+        const kelasInfo = item.kelas && !mapelName.toLowerCase().includes(item.kelas.toLowerCase())
+            ? ` (${item.kelas})`
+            : "";
+        const tokenCode = String(item.token).trim().toUpperCase();
+        const sesiInfo = item.scheduleLabel ? `\n   🕒 Sesi: ${item.scheduleLabel}` : "";
+
+        lines.push(`${index + 1}. *${mapelName}${kelasInfo}*`);
+        lines.push(`   🔑 Token: *${tokenCode}*${sesiInfo}`);
+    });
+
+    lines.push("");
+    lines.push("Mohon dibacakan/ditampilkan kepada peserta ujian di ruang masing-masing. Terima kasih 🙏");
+
+    const message = lines.join("\n");
+
+    try {
+        await navigator.clipboard.writeText(message);
+        showToast(`Berhasil menyalin ${sorted.length} token aktif dalam format pesan WA!`, "success");
+    } catch (err) {
+        // Fallback jika browser memblokir clipboard API
+        const textarea = document.createElement("textarea");
+        textarea.value = message;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        showToast(`Berhasil menyalin ${sorted.length} token aktif dalam format pesan WA!`, "success");
     }
 };
 
