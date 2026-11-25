@@ -489,7 +489,7 @@
                         </h1>
 
                         <p class="text-indigo-100 mt-2 max-w-xl text-sm sm:text-base">
-                            Buat, pantau, dan kelola ujian siswa yang otomatis tersinkron dengan jadwal sekolah.
+                            Buat, perbarui, dan kelola ujian siswa yang otomatis tersinkron dengan jadwal sekolah.
                         </p>
 
                     </div>
@@ -842,7 +842,7 @@
 
 
 <!-- ========================================================= -->
-<!-- ADD EXAM MODAL -->
+<!-- ADD / EDIT EXAM MODAL -->
 <!-- ========================================================= -->
 
 <div
@@ -863,17 +863,18 @@
 
                 <div>
 
-                    <h2 class="text-xl font-black">
+                    <h2 id="examModalTitle" class="text-xl font-black">
                         Buat Ujian Baru
                     </h2>
 
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p id="examModalSubtitle" class="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         Pilih dari jadwal resmi atau masukkan informasi ujian Anda.
                     </p>
 
                 </div>
 
                 <button
+                    type="button"
                     onclick="closeAddModal()"
                     class="w-10 h-10 rounded-xl
                            hover:bg-slate-100 dark:hover:bg-slate-800
@@ -1028,7 +1029,7 @@
                             Informasi
                         </p>
 
-                        <p class="text-indigo-600/80 dark:text-indigo-300/70 mt-1">
+                        <p id="examModalInfoText" class="text-indigo-600/80 dark:text-indigo-300/70 mt-1">
                             Ujian akan otomatis tersinkron ke dashboard Admin Proktor untuk pemasangan token & jadwal buka/tutup ujian.
                         </p>
 
@@ -1185,6 +1186,18 @@
 
                 </div>
 
+                <button
+                    id="detailEditButton"
+                    type="button"
+                    class="w-full py-3 rounded-xl
+                           bg-sky-50 dark:bg-sky-950/40
+                           hover:bg-sky-100 dark:hover:bg-sky-900/50
+                           text-sky-700 dark:text-sky-300
+                           border border-sky-200/80 dark:border-sky-800/60
+                           font-bold text-sm transition">
+                    ✏️ Edit Ujian Ini
+                </button>
+
             </div>
 
         </div>
@@ -1336,6 +1349,8 @@
     let currentFilter = "all";
     let currentUser = null;
     let deleteTargetId = null;
+    let editingExamId = null;
+    let editingOriginalExam = null;
     let unsubscribeExams = null;
     let unsubscribeSchedule = null;
     let unsubscribePasMaster = null;
@@ -2141,7 +2156,21 @@
             </div>
 
 
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-4 gap-1.5">
+
+                <button
+                    onclick="openEditModal('${exam.id}')"
+                    class="
+                        py-2.5 rounded-xl
+                        bg-sky-50 dark:bg-sky-950/40
+                        hover:bg-sky-100 dark:hover:bg-sky-900/50
+                        text-sky-700 dark:text-sky-300
+                        text-xs sm:text-sm font-bold
+                        transition
+                    ">
+                    ✏️ Edit
+                </button>
+
 
                 <button
                     onclick="openDetailModal('${exam.id}')"
@@ -2149,7 +2178,7 @@
                         py-2.5 rounded-xl
                         bg-slate-100 dark:bg-slate-800
                         hover:bg-slate-200 dark:hover:bg-slate-700
-                        text-sm font-bold
+                        text-xs sm:text-sm font-bold
                         transition
                     ">
                     Detail
@@ -2163,10 +2192,10 @@
                         ${active
                             ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"
                             : "bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400"}
-                        text-sm font-bold
+                        text-xs sm:text-sm font-bold
                         transition
                     ">
-                    ${active ? "Nonaktifkan" : "Aktifkan"}
+                    ${active ? "Nonaktif" : "Aktifkan"}
                 </button>
 
 
@@ -2177,7 +2206,7 @@
                         bg-red-50 dark:bg-red-950/30
                         hover:bg-red-100 dark:hover:bg-red-950/50
                         text-red-600 dark:text-red-400
-                        text-sm font-bold
+                        text-xs sm:text-sm font-bold
                         transition
                     ">
                     Hapus
@@ -2317,7 +2346,7 @@
 
 
     // =========================================================
-    // ADD EXAM
+    // ADD / EDIT EXAM SUBMIT
     // =========================================================
 
     document.getElementById("examForm").addEventListener("submit", async e => {
@@ -2330,12 +2359,14 @@
         const button =
             document.getElementById("saveExamButton");
 
+        const isEditMode = Boolean(editingExamId);
+
         button.disabled = true;
         button.innerHTML = `
             <span class="inline-flex items-center gap-2">
                 <span class="w-4 h-4 border-2 border-white/40
                              border-t-white rounded-full animate-spin"></span>
-                Menyimpan...
+                ${isEditMode ? "Memperbarui..." : "Menyimpan..."}
             </span>
         `;
 
@@ -2352,8 +2383,11 @@
         const spreadsheetUrl =
             document.getElementById("spreadsheetUrlInput").value.trim();
 
-        const schedulePayload = selectedScheduleSlot
-            ? {
+        const selectVal = document.getElementById("scheduleSlotSelect")?.value || "";
+
+        let schedulePayload;
+        if (selectedScheduleSlot) {
+            schedulePayload = {
                 schedule_date: selectedScheduleSlot.date || "",
                 schedule_day: selectedScheduleSlot.day || "",
                 schedule_start: selectedScheduleSlot.start || "",
@@ -2361,8 +2395,19 @@
                 schedule_label: `${selectedScheduleSlot.shortDateLabel || selectedScheduleSlot.date} • ${selectedScheduleSlot.timeLabel}`,
                 schedule_mapel: selectedScheduleSlot.mapel || mapel,
                 schedule_synced_version: officialScheduleData?.version_tag || Date.now()
-            }
-            : {
+            };
+        } else if (isEditMode && selectVal !== "manual" && editingOriginalExam?.schedule_label) {
+            // Pertahankan jadwal lama saat edit jika guru tidak memilih opsi "manual"
+            schedulePayload = {
+                schedule_date: editingOriginalExam.schedule_date || "",
+                schedule_day: editingOriginalExam.schedule_day || "",
+                schedule_start: editingOriginalExam.schedule_start || "",
+                schedule_end: editingOriginalExam.schedule_end || "",
+                schedule_label: editingOriginalExam.schedule_label || "",
+                schedule_mapel: editingOriginalExam.schedule_mapel || mapel
+            };
+        } else {
+            schedulePayload = {
                 schedule_date: "",
                 schedule_day: "",
                 schedule_start: "",
@@ -2370,53 +2415,84 @@
                 schedule_label: "",
                 schedule_mapel: ""
             };
+        }
 
 
         try {
 
-            await db.collection("exams").add({
+            if (isEditMode) {
 
-                createdByUid: currentUser.uid,
+                await db.collection("exams").doc(editingExamId).update({
 
-                createdByEmail: currentUser.email,
+                    mapel: mapel,
 
-                mapel: mapel,
+                    kelas: kelas,
 
-                kelas: kelas,
+                    examUrl: examUrl,
 
-                examUrl: examUrl,
+                    form_url: examUrl,
 
-                form_url: examUrl,
+                    link_form: examUrl,
 
-                link_form: examUrl,
+                    spreadsheetUrl: spreadsheetUrl,
 
-                spreadsheetUrl: spreadsheetUrl,
+                    ...schedulePayload,
 
-                token: "",
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
 
-                isActive: true,
+                });
 
-                is_active: true,
+                closeAddModal();
 
-                ...schedulePayload,
+                showToast(
+                    "Perubahan ujian berhasil disimpan.",
+                    "success"
+                );
 
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            } else {
 
-            });
+                const hadSchedule = Boolean(selectedScheduleSlot);
 
+                await db.collection("exams").add({
 
-            closeAddModal();
+                    createdByUid: currentUser.uid,
 
-            document.getElementById("examForm").reset();
-            selectedScheduleSlot = null;
-            document.getElementById("selectedSchedulePreview")?.classList.add("hidden");
+                    createdByEmail: currentUser.email,
 
-            showToast(
-                selectedScheduleSlot
-                    ? "Ujian berhasil dibuat & tersinkron jadwal."
-                    : "Ujian berhasil dibuat.",
-                "success"
-            );
+                    mapel: mapel,
+
+                    kelas: kelas,
+
+                    examUrl: examUrl,
+
+                    form_url: examUrl,
+
+                    link_form: examUrl,
+
+                    spreadsheetUrl: spreadsheetUrl,
+
+                    token: "",
+
+                    isActive: true,
+
+                    is_active: true,
+
+                    ...schedulePayload,
+
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+
+                });
+
+                closeAddModal();
+
+                showToast(
+                    hadSchedule
+                        ? "Ujian berhasil dibuat & tersinkron jadwal."
+                        : "Ujian berhasil dibuat.",
+                    "success"
+                );
+
+            }
 
 
         } catch (error) {
@@ -2424,14 +2500,16 @@
             console.error(error);
 
             showToast(
-                "Gagal membuat ujian.",
+                isEditMode
+                    ? "Gagal memperbarui ujian."
+                    : "Gagal membuat ujian.",
                 "error"
             );
 
         } finally {
 
             button.disabled = false;
-            button.textContent = "Simpan Ujian";
+            button.textContent = editingExamId ? "Simpan Perubahan" : "Simpan Ujian";
 
         }
 
@@ -2665,6 +2743,11 @@
 
         };
 
+        document.getElementById("detailEditButton").onclick = () => {
+            closeDetailModal();
+            openEditModal(exam.id);
+        };
+
 
         document
             .getElementById("detailModal")
@@ -2691,12 +2774,24 @@
 
 
     // =========================================================
-    // ADD MODAL
+    // ADD & EDIT MODAL
     // =========================================================
 
     function openAddModal() {
 
+        editingExamId = null;
+        editingOriginalExam = null;
         selectedScheduleSlot = null;
+
+        document.getElementById("examForm").reset();
+
+        document.getElementById("examModalTitle").textContent = "Buat Ujian Baru";
+        document.getElementById("examModalSubtitle").textContent =
+            "Pilih dari jadwal resmi atau masukkan informasi ujian Anda.";
+        document.getElementById("examModalInfoText").textContent =
+            "Ujian akan otomatis tersinkron ke dashboard Admin Proktor untuk pemasangan token & jadwal buka/tutup ujian.";
+        document.getElementById("saveExamButton").textContent = "Simpan Ujian";
+
         const selectEl = document.getElementById("scheduleSlotSelect");
         if (selectEl) selectEl.value = "";
         document.getElementById("selectedSchedulePreview")?.classList.add("hidden");
@@ -2719,8 +2814,84 @@
 
     }
 
+    function openEditModal(id) {
+
+        const exam = allExams.find(item => item.id === id);
+        if (!exam) return;
+
+        editingExamId = exam.id;
+        editingOriginalExam = exam;
+        selectedScheduleSlot = null;
+
+        document.getElementById("examModalTitle").textContent = "Edit Ujian";
+        document.getElementById("examModalSubtitle").textContent =
+            "Perbarui mata pelajaran, kelas, jadwal, atau tautan formulir & hasil.";
+        document.getElementById("examModalInfoText").textContent =
+            "Perubahan akan langsung diperbarui tanpa mengubah token ujian yang sudah dipasang Admin.";
+        document.getElementById("saveExamButton").textContent = "Simpan Perubahan";
+
+        document.getElementById("mapelInput").value = exam.mapel || "";
+        document.getElementById("kelasInput").value = exam.kelas || "";
+        document.getElementById("examUrlInput").value = getExamUrl(exam) || "";
+        document.getElementById("spreadsheetUrlInput").value = exam.spreadsheetUrl || "";
+
+        const selectEl = document.getElementById("scheduleSlotSelect");
+        const previewEl = document.getElementById("selectedSchedulePreview");
+        const previewTextEl = document.getElementById("selectedScheduleText");
+        const slots = Array.isArray(officialScheduleData?.slots) ? officialScheduleData.slots : [];
+
+        if (selectEl && slots.length > 0) {
+            const matchedIndex = slots.findIndex(s =>
+                (exam.schedule_date && s.date === exam.schedule_date && s.start === exam.schedule_start &&
+                    String(s.mapel || "").toLowerCase() === String(exam.schedule_mapel || exam.mapel || "").toLowerCase()) ||
+                (String(s.mapel || "").toLowerCase() === String(exam.mapel || "").toLowerCase() &&
+                    String(s.kelas || "").toLowerCase() === String(exam.kelas || "").toLowerCase())
+            );
+
+            if (matchedIndex !== -1) {
+                selectEl.value = String(matchedIndex);
+                selectedScheduleSlot = slots[matchedIndex];
+                const label = `${slots[matchedIndex].shortDateLabel || slots[matchedIndex].date} • ${slots[matchedIndex].timeLabel}`;
+                previewTextEl.textContent = `📅 Waktu Ujian: ${label}`;
+                previewEl.classList.remove("hidden");
+            } else if (exam.schedule_label) {
+                selectEl.value = "";
+                previewTextEl.textContent = `📅 Jadwal Saat Ini: ${exam.schedule_label}`;
+                previewEl.classList.remove("hidden");
+            } else {
+                selectEl.value = "manual";
+                previewEl.classList.add("hidden");
+            }
+        } else if (exam.schedule_label && previewEl && previewTextEl) {
+            previewTextEl.textContent = `📅 Jadwal Saat Ini: ${exam.schedule_label}`;
+            previewEl.classList.remove("hidden");
+        } else {
+            previewEl?.classList.add("hidden");
+        }
+
+        document
+            .getElementById("examModal")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("examModal")
+            .classList.add("flex");
+
+        setTimeout(() => {
+            document.getElementById("mapelInput").focus();
+        }, 100);
+
+    }
+
 
     function closeAddModal() {
+
+        editingExamId = null;
+        editingOriginalExam = null;
+        selectedScheduleSlot = null;
+
+        document.getElementById("examForm").reset();
+        document.getElementById("selectedSchedulePreview")?.classList.add("hidden");
 
         document
             .getElementById("examModal")
