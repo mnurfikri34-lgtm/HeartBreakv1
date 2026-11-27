@@ -173,6 +173,23 @@
 
         .emerald-soft:hover { background: #d1fae5; }
 
+        .indigo-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #4338ca;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            padding: 6px 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: all .15s ease;
+        }
+
+        .indigo-soft:hover { background: #e0e7ff; }
+
         .logout-btn {
             display: inline-flex;
             align-items: center;
@@ -611,7 +628,7 @@
             </div>
 
             <p class="text-sm text-slate-500 mb-7">
-                Kelola ujian, token, jadwal, akun guru, dan rekap presensi dalam satu dashboard.
+                Kelola ujian, token, jadwal, akun guru, berita acara, dan rekap presensi dalam satu dashboard.
             </p>
 
             <div id="loginAlert" class="hidden"></div>
@@ -675,7 +692,7 @@
             </div>
         </div>
 
-        <nav class="p-4 space-y-1.5 flex-1">
+        <nav class="p-4 space-y-1.5 flex-1 overflow-y-auto">
             <a href="#overview" class="nav-item active">
                 <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                 <span>Overview</span>
@@ -695,6 +712,10 @@
             <a href="#teacherPanel" class="nav-item">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                 <span>Aktivitas Guru</span>
+            </a>
+            <a href="#beritaAcaraPanel" class="nav-item">
+                <i data-lucide="file-check-2" class="w-4 h-4"></i>
+                <span>Berita Acara & Absen Ruang</span>
             </a>
             <a href="#attendancePanel" class="nav-item">
                 <i data-lucide="users" class="w-4 h-4"></i>
@@ -748,6 +769,7 @@
             <a href="#schedulePanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Jadwal</a>
             <a href="#targetGuruPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Master Guru</a>
             <a href="#teacherPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Aktivitas Guru</a>
+            <a href="#beritaAcaraPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Berita Acara</a>
             <a href="#attendancePanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Presensi Live</a>
             <a href="#attendanceRecapPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Rekap Absensi</a>
             <a href="#importPanel" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">Import Guru</a>
@@ -1086,6 +1108,63 @@
                         </div>
                     </section>
 
+                    <!-- BERITA ACARA & ABSENSI PENGAWAS RUANG -->
+                    <section id="beritaAcaraPanel" class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Berita Acara & Daftar Hadir Ruang</h2>
+                                <p>Setoran berita acara pengawas ruang dari Portal Guru & cetak arsip panitia.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap justify-end">
+                                <span id="baSubmittedCount" class="count-badge">0 Laporan</span>
+                                <button onclick="handlePrintAllFilteredBeritaAcara()" type="button" class="emerald-soft" title="Cetak semua Berita Acara yang tampil pada filter">
+                                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                                    Cetak Semua BA
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="toolbar">
+                            <div class="search-wrap">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                                <input id="baSearchInput" oninput="renderBeritaAcaraAdminTable()" placeholder="Cari ruang, mapel, kelas, atau nama pengawas...">
+                            </div>
+
+                            <select id="baDateFilter" onchange="renderBeritaAcaraAdminTable()" class="filter-select">
+                                <option value="all">Semua Tanggal Ujian</option>
+                            </select>
+
+                            <select id="baStatusFilter" onchange="renderBeritaAcaraAdminTable()" class="filter-select">
+                                <option value="all">Semua Status Setor</option>
+                                <option value="submitted">Sudah Setor</option>
+                                <option value="pending">Belum Setor</option>
+                            </select>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="modern-table min-w-[820px]">
+                                <thead>
+                                    <tr>
+                                        <th>Ruang & Kelas</th>
+                                        <th>Jadwal & Mapel</th>
+                                        <th>Pengawas Ruang</th>
+                                        <th>Rekap Kehadiran</th>
+                                        <th>Status</th>
+                                        <th>Cetak Arsip</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="beritaAcaraAdminBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            Memuat data berita acara pengawas ruang...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
                     <!-- PRESENSI REAL-TIME -->
                     <section id="attendancePanel" class="panel">
                         <div class="panel-head">
@@ -1165,7 +1244,7 @@
                         <div id="masterStudentBox" class="hidden mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                             <div class="flex items-center justify-between gap-2">
                                 <div>
-                                    <p class="text-xs font-extrabold text-slate-800">Master Data Siswa (Opsional — untuk hitung Belum Hadir)</p>
+                                    <p class="text-xs font-extrabold text-slate-800">Master Data Siswa (Sinkron ke Dropdown Guru & Rekap)</p>
                                     <p class="text-[11px] text-slate-500">Upload file Excel/CSV berisi kolom: <code>nis, nama, kelas, ruang</code>.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -1353,6 +1432,7 @@ let currentMasterTeacherList = [];
 let currentMasterStudentList = [];
 let latestExamRecords = [];
 let latestAttendanceRecords = [];
+let latestBeritaAcaraRecords = [];
 let currentScheduleData = null;
 let autoScheduleInterval = null;
 let isSyncingExamsBatch = false;
@@ -1990,6 +2070,8 @@ function listenScheduleSettings() {
         updateSchedulePreviewUI();
         refreshRecapFilterOptions();
         renderAttendanceRecap();
+        refreshBeritaAcaraDateFilter();
+        renderBeritaAcaraAdminTable();
         if (currentScheduleData?.auto_schedule) {
             runAutoScheduleCheck();
         }
@@ -2054,6 +2136,550 @@ window.openScheduleModal = function() {
 
 window.closeScheduleModal = function() {
     document.getElementById("scheduleModal")?.classList.add("hidden");
+};
+
+/* =========================================================
+   MONITORING & CETAK BERITA ACARA + DAFTAR HADIR RUANG
+========================================================= */
+let currentBeritaAcaraMergedRows = [];
+
+function normalizeRoomNumOnly(val) {
+    return String(val || "")
+        .toLowerCase()
+        .replace(/^ruang[\s._-]*/i, "")
+        .replace(/^r[\s._-]*/i, "")
+        .replace(/^0+/, "")
+        .trim();
+}
+
+function listenBeritaAcara() {
+    db.collection("berita_acara").onSnapshot(snapshot => {
+        latestBeritaAcaraRecords = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        refreshBeritaAcaraDateFilter();
+        renderBeritaAcaraAdminTable();
+    }, error => {
+        console.error("Error listening berita_acara:", error);
+    });
+}
+
+function refreshBeritaAcaraDateFilter() {
+    const dateSelect = document.getElementById("baDateFilter");
+    if (!dateSelect) return;
+
+    const prevVal = dateSelect.value || "all";
+    const todayISO = toLocalISODate(new Date());
+    const dateMap = new Map();
+
+    (currentScheduleData?.slots || []).forEach(s => {
+        if (s.date) dateMap.set(s.date, s.dateRaw || formatISODateLabel(s.date));
+    });
+
+    latestBeritaAcaraRecords.forEach(ba => {
+        if (ba.date && !dateMap.has(ba.date)) {
+            dateMap.set(ba.date, ba.tanggal_label || formatISODateLabel(ba.date));
+        }
+    });
+
+    let html = `<option value="all">Semua Tanggal Ujian</option>`;
+    Array.from(dateMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([iso, label]) => {
+            const todayTag = iso === todayISO ? " (Hari Ini)" : "";
+            html += `<option value="${escapeHTML(iso)}">${escapeHTML(label + todayTag)}</option>`;
+        });
+
+    dateSelect.innerHTML = html;
+    if (Array.from(dateSelect.options).some(o => o.value === prevVal)) {
+        dateSelect.value = prevVal;
+    }
+}
+
+function buildMergedBeritaAcaraRows() {
+    const slots = Array.isArray(currentScheduleData?.slots) ? currentScheduleData.slots : [];
+    const usedSavedIds = new Set();
+    const rows = [];
+
+    slots.forEach(slot => {
+        const pengawasList = Array.isArray(slot.pengawas) && slot.pengawas.length > 0
+            ? slot.pengawas
+            : [{ ruang: "-", kelas: slot.kelas, nama: "-" }];
+
+        pengawasList.forEach(p => {
+            const targetRoom = normalizeRoomNumOnly(p.ruang);
+            const matchedBa = latestBeritaAcaraRecords.find(ba => {
+                if (usedSavedIds.has(ba.id)) return false;
+                const baRoom = normalizeRoomNumOnly(ba.ruang);
+                const sameDate = !slot.date || !ba.date || ba.date === slot.date;
+                const sameRoom = targetRoom && baRoom && targetRoom === baRoom;
+                const sameMapel = String(ba.mapel || "").toLowerCase().includes(String(slot.mapel || "").toLowerCase().slice(0, 6)) ||
+                    String(slot.mapel || "").toLowerCase().includes(String(ba.mapel || "").toLowerCase().slice(0, 6));
+                return sameDate && sameRoom && sameMapel;
+            });
+
+            if (matchedBa) {
+                usedSavedIds.add(matchedBa.id);
+            }
+
+            rows.push({
+                isSubmitted: Boolean(matchedBa),
+                date: slot.date || matchedBa?.date || "",
+                tanggalLabel: matchedBa?.tanggal_label || slot.dateRaw || slot.shortDateLabel || slot.date || "-",
+                waktuLabel: matchedBa?.waktu_label || `${slot.timeLabel} WIB`,
+                mapel: matchedBa?.mapel || slot.mapel || "-",
+                ruang: String(matchedBa?.ruang || p.ruang || "-"),
+                kelas: matchedBa?.kelas || p.kelas || slot.kelas || "-",
+                namaPengawas: matchedBa?.nama_pengawas || p.nama || "-",
+                nipPengawas: matchedBa?.nip_pengawas || "-",
+                jumlahSeharusnya: matchedBa ? Number(matchedBa.jumlah_seharusnya || 0) : null,
+                jumlahHadir: matchedBa ? Number(matchedBa.jumlah_hadir || 0) : null,
+                jumlahTidakHadir: matchedBa ? Number(matchedBa.jumlah_tidak_hadir || 0) : null,
+                hadirList: Array.isArray(matchedBa?.hadir_list) ? matchedBa.hadir_list : [],
+                tidakHadirList: Array.isArray(matchedBa?.tidak_hadir_list) ? matchedBa.tidak_hadir_list : [],
+                catatan: matchedBa?.catatan || "Ujian berjalan dengan tertib, aman, dan lancar."
+            });
+        });
+    });
+
+    // Tambahkan laporan manual/pengawas pengganti yang tidak cocok slot jadwal
+    latestBeritaAcaraRecords.forEach(ba => {
+        if (usedSavedIds.has(ba.id)) return;
+        rows.push({
+            isSubmitted: true,
+            date: ba.date || "",
+            tanggalLabel: ba.tanggal_label || ba.date || "-",
+            waktuLabel: ba.waktu_label || "-",
+            mapel: ba.mapel || "-",
+            ruang: String(ba.ruang || "-"),
+            kelas: ba.kelas || "-",
+            namaPengawas: ba.nama_pengawas || "-",
+            nipPengawas: ba.nip_pengawas || "-",
+            jumlahSeharusnya: Number(ba.jumlah_seharusnya || 0),
+            jumlahHadir: Number(ba.jumlah_hadir || 0),
+            jumlahTidakHadir: Number(ba.jumlah_tidak_hadir || 0),
+            hadirList: Array.isArray(ba.hadir_list) ? ba.hadir_list : [],
+            tidakHadirList: Array.isArray(ba.tidak_hadir_list) ? ba.tidak_hadir_list : [],
+            catatan: ba.catatan || "Ujian berjalan dengan tertib, aman, dan lancar."
+        });
+    });
+
+    rows.sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        if (a.waktuLabel !== b.waktuLabel) return a.waktuLabel.localeCompare(b.waktuLabel);
+        const rA = parseInt(normalizeRoomNumOnly(a.ruang) || "999", 10);
+        const rB = parseInt(normalizeRoomNumOnly(b.ruang) || "999", 10);
+        return rA - rB;
+    });
+
+    return rows;
+}
+
+function renderBeritaAcaraAdminTable() {
+    const tbody = document.getElementById("beritaAcaraAdminBody");
+    const badge = document.getElementById("baSubmittedCount");
+    if (!tbody) return;
+
+    const keyword = (document.getElementById("baSearchInput")?.value || "").trim().toLowerCase();
+    const dateFilter = document.getElementById("baDateFilter")?.value || "all";
+    const statusFilter = document.getElementById("baStatusFilter")?.value || "all";
+
+    const allRows = buildMergedBeritaAcaraRows();
+    const submittedCount = allRows.filter(r => r.isSubmitted).length;
+    if (badge) {
+        badge.textContent = `${submittedCount} / ${allRows.length} Disetor`;
+    }
+
+    const filtered = allRows.filter(r => {
+        if (dateFilter !== "all" && r.date !== dateFilter) return false;
+        if (statusFilter === "submitted" && !r.isSubmitted) return false;
+        if (statusFilter === "pending" && r.isSubmitted) return false;
+        if (keyword) {
+            const hay = `ruang ${r.ruang} ${r.kelas} ${r.mapel} ${r.namaPengawas} ${r.tanggalLabel}`.toLowerCase();
+            if (!hay.includes(keyword)) return false;
+        }
+        return true;
+    });
+
+    currentBeritaAcaraMergedRows = filtered;
+
+    if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada data jadwal ruang atau laporan berita acara pada filter ini.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map((row, idx) => {
+        const rekapHTML = row.isSubmitted
+            ? `<div class="font-mono text-xs font-bold text-slate-800">
+                   <span class="text-emerald-600">${row.jumlahHadir} Hadir</span> • 
+                   <span class="${row.jumlahTidakHadir > 0 ? "text-rose-600" : "text-slate-400"}">${row.jumlahTidakHadir} Absen</span>
+               </div>
+               <div class="text-[10.5px] text-slate-400">Total Seharusnya: ${row.jumlahSeharusnya}</div>`
+            : `<span class="text-xs text-slate-400 italic">Menunggu pengawas</span>`;
+
+        const statusBadge = row.isSubmitted
+            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold">
+                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>DISETOR
+               </span>`
+            : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-extrabold">
+                   BELUM SETOR
+               </span>`;
+
+        return `
+            <tr>
+                <td>
+                    <div class="font-extrabold text-slate-800">Ruang ${escapeHTML(row.ruang)}</div>
+                    <div class="text-[11px] font-semibold text-indigo-600">${escapeHTML(row.kelas)}</div>
+                </td>
+                <td>
+                    <div class="font-bold text-slate-800">${escapeHTML(row.mapel)}</div>
+                    <div class="font-mono text-[10.5px] text-slate-500 mt-0.5">${escapeHTML(row.tanggalLabel)} • ${escapeHTML(row.waktuLabel)}</div>
+                </td>
+                <td>
+                    <div class="font-semibold text-slate-700">${escapeHTML(row.namaPengawas)}</div>
+                </td>
+                <td>${rekapHTML}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button"
+                                onclick="printSingleBeritaAcaraAdmin(${idx})"
+                                class="indigo-soft"
+                                title="Cetak Berita Acara Ruang ${escapeHTML(row.ruang)}">
+                            🖨️ Berita Acara
+                        </button>
+                        <button type="button"
+                                onclick="printRoomAttendanceSheetAdmin(${idx})"
+                                class="emerald-soft"
+                                title="Cetak Daftar Hadir Siswa Ruang ${escapeHTML(row.ruang)}">
+                            📋 Daftar Hadir
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function buildBeritaAcaraPageHTML(row, examTitle) {
+    const seharusnya = row.jumlahSeharusnya !== null ? row.jumlahSeharusnya : "......";
+    const hadir = row.jumlahHadir !== null ? row.jumlahHadir : "......";
+    const tidakHadir = row.jumlahTidakHadir !== null ? row.jumlahTidakHadir : "......";
+
+    const absentRows = row.tidakHadirList.length
+        ? row.tidakHadirList.map((s, i) => `
+            <tr>
+                <td style="border:1px solid #000;padding:5px;text-align:center;">${i + 1}</td>
+                <td style="border:1px solid #000;padding:5px;">${escapeHTML(s.nama)}</td>
+                <td style="border:1px solid #000;padding:5px;text-align:center;">${escapeHTML(s.kelas || row.kelas)}</td>
+                <td style="border:1px solid #000;padding:5px;text-align:center;">${escapeHTML(s.status || "Tidak Hadir")}</td>
+            </tr>
+        `).join("")
+        : `<tr><td colspan="4" style="border:1px solid #000;padding:6px;text-align:center;font-style:italic;">${row.isSubmitted ? "Nihil (Seluruh peserta hadir)" : "...................................................................................."}</td></tr>`;
+
+    return `
+        <div class="ba-page">
+            <div class="header">
+                <h2>BERITA ACARA PELAKSANAAN UJIAN</h2>
+                <h3>${escapeHTML(examTitle)}</h3>
+            </div>
+
+            <p>Pada hari ini <b>${escapeHTML(row.tanggalLabel)}</b>, telah diselenggarakan ujian berbasis komputer (A2S CBT) dengan rincian sebagai berikut:</p>
+
+            <table class="info">
+                <tr><td style="width:210px;">Mata Pelajaran</td><td style="width:15px;">:</td><td><b>${escapeHTML(row.mapel)}</b></td></tr>
+                <tr><td>Kelas / Rombel</td><td>:</td><td>${escapeHTML(row.kelas)}</td></tr>
+                <tr><td>Ruang Ujian</td><td>:</td><td><b>Ruang ${escapeHTML(row.ruang)}</b></td></tr>
+                <tr><td>Waktu Pelaksanaan</td><td>:</td><td>${escapeHTML(row.waktuLabel)}</td></tr>
+                <tr><td>Jumlah Peserta Seharusnya</td><td>:</td><td>${escapeHTML(seharusnya)} orang</td></tr>
+                <tr><td>Jumlah Peserta Hadir</td><td>:</td><td><b>${escapeHTML(hadir)} orang</b></td></tr>
+                <tr><td>Jumlah Peserta Tidak Hadir</td><td>:</td><td><b>${escapeHTML(tidakHadir)} orang</b></td></tr>
+            </table>
+
+            <p style="margin-bottom:4px;"><b>Daftar Peserta Tidak Hadir:</b></p>
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">No</th>
+                        <th>Nama Siswa</th>
+                        <th style="width:130px;">Kelas</th>
+                        <th style="width:110px;">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>${absentRows}</tbody>
+            </table>
+
+            <p style="margin-top:16px;margin-bottom:4px;"><b>Catatan Kejadian Khusus Selama Ujian:</b></p>
+            <div class="box">${escapeHTML(row.catatan)}</div>
+
+            <p style="margin-top:16px;">Demikian berita acara ini dibuat dengan sesungguhnya untuk dipergunakan sebagaimana mestinya.</p>
+
+            <div class="sign-wrap">
+                <div class="sign-box">
+                    <div>Pengawas Ruang,</div>
+                    <div style="height:68px;"></div>
+                    <div><b><u>${escapeHTML(row.namaPengawas)}</u></b></div>
+                    <div>NIP. ${escapeHTML(row.nipPengawas || "-")}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.printSingleBeritaAcaraAdmin = function(index) {
+    const row = currentBeritaAcaraMergedRows[index];
+    if (!row) return;
+
+    const examTitle = currentScheduleData?.title || "PENILAIAN AKHIR SEMESTER (PAS) BERBASIS CBT";
+    const pageContent = buildBeritaAcaraPageHTML(row, examTitle);
+
+    const printWin = window.open("", "_blank", "width=850,height=950");
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <title>Berita Acara Ujian - Ruang ${escapeHTML(row.ruang)}</title>
+            <style>
+                body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.5; color: #000; padding: 30px 45px; }
+                .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+                .header h2 { margin: 0; font-size: 14pt; text-transform: uppercase; }
+                .header h3 { margin: 4px 0 0; font-size: 12pt; text-transform: uppercase; }
+                table.info { width: 100%; border-collapse: collapse; margin: 12px 0; }
+                table.info td { padding: 4px 6px; vertical-align: top; }
+                table.grid { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11pt; }
+                table.grid th { border: 1px solid #000; padding: 6px; background: #f2f2f2; }
+                .box { border: 1px solid #000; padding: 10px; min-height: 55px; margin-top: 6px; }
+                .sign-wrap { display: flex; justify-content: flex-end; margin-top: 40px; }
+                .sign-box { width: 260px; text-align: left; }
+                @media print { body { padding: 10px 20px; } }
+            </style>
+        </head>
+        <body>
+            ${pageContent}
+            ${'<' + 'script>'}window.onload = function() { window.print(); };${'<' + '/script>'}
+        </body>
+        </html>
+    `);
+    printWin.document.close();
+};
+
+window.handlePrintAllFilteredBeritaAcara = function() {
+    if (!currentBeritaAcaraMergedRows.length) {
+        showToast("Tidak ada data Berita Acara untuk dicetak.", "error");
+        return;
+    }
+
+    const examTitle = currentScheduleData?.title || "PENILAIAN AKHIR SEMESTER (PAS) BERBASIS CBT";
+    const pagesHTML = currentBeritaAcaraMergedRows
+        .map(row => buildBeritaAcaraPageHTML(row, examTitle))
+        .join("");
+
+    const printWin = window.open("", "_blank", "width=900,height=950");
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <title>Bundel Berita Acara Ujian (${currentBeritaAcaraMergedRows.length} Ruang)</title>
+            <style>
+                body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.5; color: #000; margin: 0; }
+                .ba-page { padding: 30px 45px; page-break-after: always; }
+                .ba-page:last-child { page-break-after: auto; }
+                .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+                .header h2 { margin: 0; font-size: 14pt; text-transform: uppercase; }
+                .header h3 { margin: 4px 0 0; font-size: 12pt; text-transform: uppercase; }
+                table.info { width: 100%; border-collapse: collapse; margin: 12px 0; }
+                table.info td { padding: 4px 6px; vertical-align: top; }
+                table.grid { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11pt; }
+                table.grid th { border: 1px solid #000; padding: 6px; background: #f2f2f2; }
+                .box { border: 1px solid #000; padding: 10px; min-height: 55px; margin-top: 6px; }
+                .sign-wrap { display: flex; justify-content: flex-end; margin-top: 40px; }
+                .sign-box { width: 260px; text-align: left; }
+                @media print { .ba-page { padding: 12px 20px; } }
+            </style>
+        </head>
+        <body>
+            ${pagesHTML}
+            ${'<' + 'script>'}window.onload = function() { window.print(); };${'<' + '/script>'}
+        </body>
+        </html>
+    `);
+    printWin.document.close();
+};
+
+window.printRoomAttendanceSheetAdmin = function(index) {
+    const row = currentBeritaAcaraMergedRows[index];
+    if (!row) return;
+
+    const targetRoomNorm = normalizeRoomNumOnly(row.ruang);
+    const targetClassNorm = String(row.kelas || "").toLowerCase().replace(/\s+/g, "");
+    const examTitle = currentScheduleData?.title || "PENILAIAN AKHIR SEMESTER (PAS) BERBASIS CBT";
+
+    // Kumpulkan siswa dari Master Siswa (jika ada) untuk ruangan/kelas ini
+    const masterRoomStudents = currentMasterStudentList.filter(st => {
+        const sRoom = normalizeRoomNumOnly(st.ruang);
+        const sClass = String(st.kelas || "").toLowerCase().replace(/\s+/g, "");
+        if (targetRoomNorm && sRoom) return targetRoomNorm === sRoom;
+        if (targetClassNorm && sClass) return sClass.includes(targetClassNorm) || targetClassNorm.includes(sClass);
+        return false;
+    });
+
+    // Kumpulkan siswa yang hadir (dari laporan berita acara + presensi real-time)
+    const presentMap = new Map();
+    row.hadirList.forEach(h => {
+        presentMap.set(String(h.nama || "").trim().toLowerCase(), h.jam || "Hadir");
+    });
+
+    latestAttendanceRecords.forEach(a => {
+        const aRoom = normalizeRoomNumOnly(a.ruang);
+        const sameDate = !row.date || !a.checkinDateISO || a.checkinDateISO === row.date;
+        if (sameDate && targetRoomNorm && aRoom === targetRoomNorm) {
+            const key = String(a.nama || "").trim().toLowerCase();
+            if (!presentMap.has(key)) {
+                presentMap.set(key, a.checkinTimeStr || "Hadir");
+            }
+        }
+    });
+
+    // Kumpulkan siswa tidak hadir dari Berita Acara
+    const absentMap = new Map();
+    row.tidakHadirList.forEach(ab => {
+        absentMap.set(String(ab.nama || "").trim().toLowerCase(), ab.status || "Tidak Hadir");
+    });
+
+    // Gabungkan daftar peserta ruang
+    const combinedMap = new Map();
+    masterRoomStudents.forEach(st => {
+        const key = String(st.nama || "").trim().toLowerCase();
+        combinedMap.set(key, {
+            nis: st.nis || "-",
+            nama: st.nama,
+            kelas: st.kelas || row.kelas
+        });
+    });
+
+    row.hadirList.forEach(h => {
+        const key = String(h.nama || "").trim().toLowerCase();
+        if (!combinedMap.has(key)) {
+            combinedMap.set(key, { nis: h.nisn || "-", nama: h.nama, kelas: h.kelas || row.kelas });
+        }
+    });
+
+    latestAttendanceRecords.forEach(a => {
+        const aRoom = normalizeRoomNumOnly(a.ruang);
+        const sameDate = !row.date || !a.checkinDateISO || a.checkinDateISO === row.date;
+        if (sameDate && targetRoomNorm && aRoom === targetRoomNorm) {
+            const key = String(a.nama || "").trim().toLowerCase();
+            if (!combinedMap.has(key)) {
+                combinedMap.set(key, { nis: a.nis || "-", nama: a.nama, kelas: a.kelas || row.kelas });
+            }
+        }
+    });
+
+    row.tidakHadirList.forEach(ab => {
+        const key = String(ab.nama || "").trim().toLowerCase();
+        if (!combinedMap.has(key)) {
+            combinedMap.set(key, { nis: "-", nama: ab.nama, kelas: ab.kelas || row.kelas });
+        }
+    });
+
+    const studentRows = Array.from(combinedMap.values()).sort((a, b) => a.nama.localeCompare(b.nama, "id"));
+
+    const tableRowsHTML = studentRows.length
+        ? studentRows.map((st, idx) => {
+            const key = String(st.nama || "").trim().toLowerCase();
+            let ket = "Belum Absen";
+            let paraf = "";
+            if (presentMap.has(key)) {
+                const jam = presentMap.get(key);
+                ket = jam && jam !== "Hadir" ? `Hadir (${jam} WIB)` : "Hadir (CBT)";
+                paraf = "✓ Check-in CBT";
+            } else if (absentMap.has(key)) {
+                ket = absentMap.get(key);
+                paraf = absentMap.get(key).toUpperCase();
+            }
+
+            return `
+                <tr>
+                    <td style="border:1px solid #000;padding:5px;text-align:center;">${idx + 1}</td>
+                    <td style="border:1px solid #000;padding:5px;text-align:center;">${escapeHTML(st.nis)}</td>
+                    <td style="border:1px solid #000;padding:5px;">${escapeHTML(st.nama)}</td>
+                    <td style="border:1px solid #000;padding:5px;text-align:center;">${escapeHTML(st.kelas)}</td>
+                    <td style="border:1px solid #000;padding:5px;text-align:center;"><b>${escapeHTML(ket)}</b></td>
+                    <td style="border:1px solid #000;padding:5px;text-align:center;font-size:10pt;">${escapeHTML(paraf)}</td>
+                </tr>
+            `;
+        }).join("")
+        : `<tr><td colspan="6" style="border:1px solid #000;padding:12px;text-align:center;font-style:italic;">Belum ada data peserta untuk ruangan ini. Silakan upload Master Data Siswa atau tunggu check-in peserta.</td></tr>`;
+
+    const printWin = window.open("", "_blank", "width=900,height=950");
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <title>Daftar Hadir Peserta - Ruang ${escapeHTML(row.ruang)}</title>
+            <style>
+                body { font-family: "Times New Roman", Times, serif; font-size: 11.5pt; line-height: 1.4; color: #000; padding: 25px 40px; }
+                .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 16px; }
+                .header h2 { margin: 0; font-size: 13.5pt; text-transform: uppercase; }
+                .header h3 { margin: 4px 0 0; font-size: 11.5pt; text-transform: uppercase; }
+                table.meta { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11pt; }
+                table.meta td { padding: 3px 5px; }
+                table.list { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+                table.list th { border: 1px solid #000; padding: 6px; background: #f2f2f2; }
+                .sign-wrap { display: flex; justify-content: flex-end; margin-top: 30px; }
+                .sign-box { width: 250px; }
+                @media print { body { padding: 10px 18px; } }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>DAFTAR HADIR PESERTA UJIAN</h2>
+                <h3>${escapeHTML(examTitle)}</h3>
+            </div>
+
+            <table class="meta">
+                <tr>
+                    <td style="width:140px;">Hari / Tanggal</td><td style="width:10px;">:</td><td><b>${escapeHTML(row.tanggalLabel)}</b></td>
+                    <td style="width:120px;">Ruang Ujian</td><td style="width:10px;">:</td><td><b>Ruang ${escapeHTML(row.ruang)} (${escapeHTML(row.kelas)})</b></td>
+                </tr>
+                <tr>
+                    <td>Mata Pelajaran</td><td>:</td><td><b>${escapeHTML(row.mapel)}</b></td>
+                    <td>Waktu / Sesi</td><td>:</td><td>${escapeHTML(row.waktuLabel)}</td>
+                </tr>
+            </table>
+
+            <table class="list">
+                <thead>
+                    <tr>
+                        <th style="width:36px;">No</th>
+                        <th style="width:110px;">NIS / NISN</th>
+                        <th>Nama Peserta</th>
+                        <th style="width:95px;">Kelas</th>
+                        <th style="width:135px;">Status Kehadiran</th>
+                        <th style="width:115px;">Paraf / Ket</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRowsHTML}</tbody>
+            </table>
+
+            <div class="sign-wrap">
+                <div class="sign-box">
+                    <div>Pengawas Ruang,</div>
+                    <div style="height:62px;"></div>
+                    <div><b><u>${escapeHTML(row.namaPengawas)}</u></b></div>
+                    <div>NIP. ${escapeHTML(row.nipPengawas || "-")}</div>
+                </div>
+            </div>
+
+            ${'<' + 'script>'}window.onload = function() { window.print(); };${'<' + '/script>'}
+        </body>
+        </html>
+    `);
+    printWin.document.close();
 };
 
 /* =========================================================
@@ -2153,8 +2779,16 @@ window.handleImportMasterStudents = function() {
                 { merge: true }
             );
 
+            // Sekaligus sinkronkan ke settings/pas agar dropdown siswa di guru.html langsung terbaca
+            await db.collection("settings").doc("pas").set(
+                {
+                    daftar_siswa: parsedStudents
+                },
+                { merge: true }
+            );
+
             input.value = "";
-            showToast(`Berhasil menyimpan ${parsedStudents.length} data siswa!`, "success");
+            showToast(`Berhasil menyimpan ${parsedStudents.length} data siswa & sinkron ke Portal Guru!`, "success");
         } catch (error) {
             console.error(error);
             showToast("Gagal import master siswa: " + error.message, "error");
@@ -2177,6 +2811,10 @@ window.handleClearMasterStudents = async function() {
                 daftar_siswa: [],
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             },
+            { merge: true }
+        );
+        await db.collection("settings").doc("pas").set(
+            { daftar_siswa: [] },
             { merge: true }
         );
         showToast("Master Data Siswa dihapus.", "info");
@@ -2202,7 +2840,7 @@ function listenStudentSettings() {
 
         if (statusEl) {
             if (currentMasterStudentList.length > 0) {
-                statusEl.textContent = `Aktif: ${currentMasterStudentList.length} siswa terdaftar di master data.`;
+                statusEl.textContent = `Aktif: ${currentMasterStudentList.length} siswa terdaftar (tersinkron ke dropdown Guru).`;
                 statusEl.className = "text-[11px] font-bold text-emerald-700";
             } else {
                 statusEl.textContent = "Belum ada master data siswa (rekap tetap berjalan otomatis dari presensi masuk).";
@@ -2221,7 +2859,6 @@ function normalizeRoomDescriptor(rawRuang, rawKelas = "") {
     const rStr = String(rawRuang || "").trim();
     const kStr = String(rawKelas || "").trim();
 
-    // Cek angka ruang (mendukung: "1", "01", "Ruang 1", "ruang_1", "ruang-1", "R.1")
     const numMatch = rStr.match(/^(?:ruang[\s._-]*|r[\s._-]*)?0*(\d{1,2})$/i);
     if (numMatch) {
         const rNum = parseInt(numMatch[1], 10);
@@ -2234,7 +2871,6 @@ function normalizeRoomDescriptor(rawRuang, rawKelas = "") {
         };
     }
 
-    // Cek kecocokan nama kelas dengan roomsMeta (misal "X1 TEI" -> Ruang 1)
     const cleanTarget = (rStr || kStr).toUpperCase().replace(/\s+/g, "");
     if (cleanTarget && roomsMeta.length > 0) {
         const foundByClass = roomsMeta.find(m => m.kelas.toUpperCase().replace(/\s+/g, "") === cleanTarget);
@@ -2264,7 +2900,6 @@ function refreshRecapFilterOptions() {
     const prevToken = tokenSelect.value || "all";
     const todayISO = toLocalISODate(new Date());
 
-    // Kumpulkan tanggal unik dari presensi & jadwal
     const dateSet = new Set();
     latestAttendanceRecords.forEach(a => {
         if (a.checkinDateISO) dateSet.add(a.checkinDateISO);
@@ -2284,7 +2919,6 @@ function refreshRecapFilterOptions() {
         dateSelect.value = prevDate;
     }
 
-    // Kumpulkan token unik dari exams & presensi
     const tokenMap = new Map();
     latestExamRecords.forEach(e => {
         if (e.token) {
@@ -2338,7 +2972,6 @@ function buildRecapDatasets() {
     const roomsMeta = Array.isArray(currentScheduleData?.rooms) ? currentScheduleData.rooms : [];
     const hasMasterStudents = currentMasterStudentList.length > 0;
 
-    // Deduplikasi berdasarkan NIS + Token (atau ID dokumen) agar siswa yang refresh tidak dihitung ganda
     const uniqueAttendances = new Map();
     filteredRecords.forEach(rec => {
         const nisKey = String(rec.nis || "").trim().toLowerCase();
@@ -2351,7 +2984,6 @@ function buildRecapDatasets() {
 
     const dedupList = Array.from(uniqueAttendances.values());
 
-    // Hitung statistik ringkasan atas
     let officialTotal = 0;
     let browserTotal = 0;
     dedupList.forEach(rec => {
@@ -2359,7 +2991,6 @@ function buildRecapDatasets() {
         else browserTotal++;
     });
 
-    // Hitung target siswa per ruang dari Master Siswa
     const targetByRoom = new Map();
     currentMasterStudentList.forEach(st => {
         const desc = normalizeRoomDescriptor(st.ruang, st.kelas);
@@ -2369,7 +3000,6 @@ function buildRecapDatasets() {
         targetByRoom.get(desc.key).students.push(st);
     });
 
-    // Inisialisasi semua ruang dari Jadwal Excel agar ruang yang masih 0 hadir tetap terlihat
     const roomGroupMap = new Map();
     roomsMeta.forEach(rm => {
         const desc = normalizeRoomDescriptor(rm.ruang, rm.kelas);
@@ -2385,7 +3015,6 @@ function buildRecapDatasets() {
         });
     });
 
-    // Pastikan ruang dari Master Siswa juga masuk
     targetByRoom.forEach((val, key) => {
         if (!roomGroupMap.has(key)) {
             roomGroupMap.set(key, {
@@ -2401,7 +3030,6 @@ function buildRecapDatasets() {
         }
     });
 
-    // Agregasi presensi masuk ke Room Group & Exam Group
     const examInfoByToken = new Map();
     latestExamRecords.forEach(ex => {
         if (ex.token) {
@@ -2416,7 +3044,6 @@ function buildRecapDatasets() {
         const nisClean = String(rec.nis || "").trim().toLowerCase();
         if (nisClean) allPresentNis.add(nisClean);
 
-        // 1. Per Ruang
         const desc = normalizeRoomDescriptor(rec.ruang, rec.kelas);
         if (!roomGroupMap.has(desc.key)) {
             roomGroupMap.set(desc.key, {
@@ -2436,7 +3063,6 @@ function buildRecapDatasets() {
         else rg.browser++;
         if (nisClean) rg.presentNisSet.add(nisClean);
 
-        // 2. Per Token / Mapel
         const tk = String(rec.exam_token || "TANPA_TOKEN").trim().toUpperCase();
         if (!examGroupMap.has(tk)) {
             const exMeta = examInfoByToken.get(tk);
@@ -2462,7 +3088,6 @@ function buildRecapDatasets() {
 
     const examRows = Array.from(examGroupMap.values()).sort((a, b) => b.hadir - a.hadir);
 
-    // Daftar siswa belum hadir (jika Master Siswa tersedia)
     const absentStudents = hasMasterStudents
         ? currentMasterStudentList.filter(st => {
             const nisClean = String(st.nis || "").trim().toLowerCase();
@@ -2647,7 +3272,6 @@ window.handleExportRecapExcel = function() {
     try {
         const wb = XLSX.utils.book_new();
 
-        // Sheet 1: Rekap Per Ruang
         const sheetRoomData = roomRows.map((r, idx) => ({
             "No": idx + 1,
             "Ruang / Kelas": r.label,
@@ -2661,7 +3285,6 @@ window.handleExportRecapExcel = function() {
         const wsRoom = XLSX.utils.json_to_sheet(sheetRoomData.length ? sheetRoomData : [{ Info: "Belum ada data" }]);
         XLSX.utils.book_append_sheet(wb, wsRoom, "Rekap Per Ruang");
 
-        // Sheet 2: Rekap Per Mapel
         const sheetExamData = examRows.map((e, idx) => ({
             "No": idx + 1,
             "Token": e.token,
@@ -2674,7 +3297,6 @@ window.handleExportRecapExcel = function() {
         const wsExam = XLSX.utils.json_to_sheet(sheetExamData.length ? sheetExamData : [{ Info: "Belum ada data" }]);
         XLSX.utils.book_append_sheet(wb, wsExam, "Rekap Per Mapel");
 
-        // Sheet 3: Detail Hadir Siswa
         const examMap = new Map(latestExamRecords.map(e => [e.token.toUpperCase(), e.displayName]));
         const sortedDetail = [...dedupList].sort((a, b) => {
             const rA = normalizeRoomDescriptor(a.ruang, a.kelas);
@@ -2703,7 +3325,6 @@ window.handleExportRecapExcel = function() {
         const wsDetail = XLSX.utils.json_to_sheet(sheetDetailData.length ? sheetDetailData : [{ Info: "Belum ada data" }]);
         XLSX.utils.book_append_sheet(wb, wsDetail, "Detail Siswa Hadir");
 
-        // Sheet 4: Daftar Belum Hadir (jika master siswa ada)
         if (hasMasterStudents) {
             const sheetAbsentData = absentStudents.map((st, idx) => ({
                 "No": idx + 1,
@@ -3050,7 +3671,6 @@ window.handleDeleteToken = async function(docId, tokenName) {
 };
 
 window.handleCopyActiveTokensWA = async function() {
-    // Filter hanya ujian yang AKTIF dan sudah memiliki TOKEN terisi
     const activeTokenExams = latestExamRecords.filter(item =>
         Boolean(item.isActive) && String(item.token || "").trim() !== ""
     );
@@ -3060,7 +3680,6 @@ window.handleCopyActiveTokensWA = async function() {
         return;
     }
 
-    // Urutkan berdasarkan jadwal sesi (jika ada), lalu berdasarkan nama mapel
     const sorted = [...activeTokenExams].sort((a, b) => {
         const keyA = a.scheduleDate ? `${a.scheduleDate}_${a.scheduleStart}` : "9999-99-99_99:99";
         const keyB = b.scheduleDate ? `${b.scheduleDate}_${b.scheduleStart}` : "9999-99-99_99:99";
@@ -3103,7 +3722,6 @@ window.handleCopyActiveTokensWA = async function() {
         await navigator.clipboard.writeText(message);
         showToast(`Berhasil menyalin ${sorted.length} token aktif dalam format pesan WA!`, "success");
     } catch (err) {
-        // Fallback jika browser memblokir clipboard API
         const textarea = document.createElement("textarea");
         textarea.value = message;
         textarea.style.position = "fixed";
@@ -3670,6 +4288,7 @@ function initializeAdmin() {
     listenPasSettings();
     listenExams();
     listenAttendances();
+    listenBeritaAcara();
 
     if (autoScheduleInterval) clearInterval(autoScheduleInterval);
     autoScheduleInterval = setInterval(runAutoScheduleCheck, 30000);
